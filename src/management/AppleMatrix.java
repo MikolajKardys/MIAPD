@@ -1,3 +1,7 @@
+package management;
+
+import management.Apple;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,7 +37,7 @@ public class AppleMatrix {
         apples.put(name, newApple);
     }
 
-    public Double [][] getMatrix (String criteria){
+    public double [][] getMatrix (String criteria){
         if (!criteriaNames.contains(criteria)){
             System.out.println("Invalid criteria name!");
             return null;
@@ -41,7 +45,7 @@ public class AppleMatrix {
 
         int appleNum = apples.size();
 
-        Double [][] matrix = new Double[appleNum][appleNum];
+        double [][] matrix = new double[appleNum][appleNum];
 
         for (int i = 0; i < appleNum; i++){
             matrix[i][i] = 1.0;
