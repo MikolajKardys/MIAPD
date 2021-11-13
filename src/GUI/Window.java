@@ -3,26 +3,13 @@ package GUI;
 import management.WindowObserver;
 
 import javax.swing.*;
-import java.util.LinkedList;
 import java.util.Objects;
 
 public class Window extends JFrame {
-    private final JButton addAppleButton, removeAppleButton, loadApplesButton, getRankingButton;
     private final JButton [] alternativesButtons;
-
-    private final JPanel mainPanel;
-
-    private final JTextField newAppleField;
-    private final LinkedList<String> appleNames = new LinkedList<>();
-
-    private final double [][] C = new double[10][10];
-
     private WindowObserver windowObserver;
 
     public Window() {
-        for(int i=0; i<10; i++)
-            C[i][i] = 1;
-
         alternativesButtons = new JButton[10];
         for(int i=0; i<10; i++) {
             alternativesButtons[i] = new JButton();
@@ -33,45 +20,33 @@ public class Window extends JFrame {
             alternativesButtons[i].setVisible(false);
         }
 
-
-        newAppleField = new JTextField();
+        JTextField newAppleField = new JTextField();
         newAppleField.setBounds(250, 25, 500, 50);
 
-        addAppleButton = new JButton();
+        JButton addAppleButton = new JButton("Add apple");
         addAppleButton.setBounds(250, 100, 240, 50);
-        addAppleButton.setText("Add apple");
         addAppleButton.addActionListener(e -> {
             if(!Objects.equals(newAppleField.getText(), "")) {
-                if(appleNames.size() < 10) {
-                    String appleName = newAppleField.getText();
-                    if (windowObserver.addApple(appleName)) {
-                        appleNames.add(appleName);
+                if (windowObserver.addApple(newAppleField.getText()))
+                    reloadList();
 
-                        reloadList();
-                    }
-                }
                 newAppleField.setText("");
             }
         });
 
-        removeAppleButton = new JButton();
+        JButton removeAppleButton = new JButton("Remove apple");
         removeAppleButton.setBounds(510, 100, 240, 50);
-        removeAppleButton.setText("Remove apple");
         removeAppleButton.addActionListener(e -> {
             if(!Objects.equals(newAppleField.getText(), "")) {
-                String appleName = newAppleField.getText();
-                if(windowObserver.removeApple(appleName)) {
-                    appleNames.remove(appleName);
-                    System.out.println(appleNames.size());
+                if(windowObserver.removeApple(newAppleField.getText()))
                     reloadList();
-                }
+
                 newAppleField.setText("");
             }
         });
 
-        loadApplesButton = new JButton();
+        JButton loadApplesButton = new JButton("Load apples from file");
         loadApplesButton.setBounds(250, 180, 500, 50);
-        loadApplesButton.setText("Load apples from file");
         loadApplesButton.addActionListener(e -> {
             /*
             JFileChooser fileToOpen = new JFileChooser();
@@ -86,25 +61,14 @@ public class Window extends JFrame {
             */
         });
 
-        getRankingButton = new JButton();
+        JButton getRankingButton = new JButton("Get ranking");
         getRankingButton.setBounds(800, 650, 150, 50);
-        getRankingButton.setText("Get ranking");
-        getRankingButton.addActionListener( e -> {
-            boolean tableCFilled = true;
-            for(int i=0; i<appleNames.size(); i++) {
-                for(int j=0; j<appleNames.size(); j++) {
-                    if(C[i][j] == 0) {
-                        tableCFilled = false;
-                        break;
-                    }
-                }
-            }
-
-            if(tableCFilled)
-                new RankingWindow(windowObserver.getRanking(C));
+        getRankingButton.addActionListener(e -> {
+            if(windowObserver.isPCTableCorrect())
+                new RankingWindow(windowObserver, windowObserver.getRanking());
         });
 
-        mainPanel = new JPanel();
+        JPanel mainPanel = new JPanel();
         mainPanel.setBounds(0,0, 1000, 750);
         mainPanel.setLayout(null);
         mainPanel.add(addAppleButton);
@@ -112,10 +76,8 @@ public class Window extends JFrame {
         mainPanel.add(loadApplesButton);
         mainPanel.add(newAppleField);
         mainPanel.add(getRankingButton);
-
-        for(JButton alternativeButton : alternativesButtons) {
+        for(JButton alternativeButton : alternativesButtons)
             mainPanel.add(alternativeButton);
-        }
 
         this.setTitle("Apple rank");
         this.setSize(1000, 750);
@@ -127,19 +89,17 @@ public class Window extends JFrame {
     }
 
     private void reloadList() {
-        for(int i=0; i<10; i++) {
+        for(int i=0; i<10; i++)
             alternativesButtons[i].setVisible(false);
-        }
 
-        for(int i=0; i<appleNames.size(); i++) {
-            alternativesButtons[i].setText(appleNames.get(i));
+        for(int i=0; i<windowObserver.applesNumber(); i++) {
+            alternativesButtons[i].setText(windowObserver.getIthAppleName(i));
             alternativesButtons[i].setVisible(true);
-            int finalI = i;
 
-            if (alternativesButtons[i].getActionListeners().length == 0)
-                alternativesButtons[i].addActionListener(e -> {
-                    new PCWindow(appleNames, finalI, C);
-            });
+            if(alternativesButtons[i].getActionListeners().length == 0) {
+                int finalI = i;
+                alternativesButtons[i].addActionListener(e -> new PCWindow(windowObserver, finalI));
+            }
         }
     }
 
