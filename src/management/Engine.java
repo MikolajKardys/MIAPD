@@ -15,6 +15,11 @@ public class Engine implements WindowObserver {
 
     @Override
     public boolean removeApple(String appleName) {
-        return false;
+        return true;
+    }
+
+    @Override
+    public double [] getRanking(double[][] C) {
+        return new double[10];
     }
 }
