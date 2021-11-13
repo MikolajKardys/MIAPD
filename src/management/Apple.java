@@ -8,11 +8,8 @@ public class Apple {
 
     private final String name;
 
-    public final int index;
-
     public Apple (String name, int index){
         this.name = name;
-        this.index = index;
     }
 
     @Override
@@ -29,14 +26,25 @@ public class Apple {
         values.put(criteria, new HashMap<>());
     }
 
+    public void removeCriteria(String criteria){
+        values.remove(criteria);
+    }
+
     public void changeCriteriaVal (String criteria, Apple other, Double value) {
         if (!values.containsKey(criteria)){
             System.out.println("Invalid criteria name!");
+            return;
         }
 
-        values.get(criteria).put(other, value);
-
-        other.values.get(criteria).put(this, 1 / value);
+        if (value != null) {
+            values.get(criteria).put(other, value);
+            other.values.get(criteria).put(this, 1 / value);
+        }
+        else if (getCriteriaVal(criteria, other) != null){
+            System.out.println("Usuwando");
+            values.get(criteria).remove(other);
+            other.values.get(criteria).remove(this);
+        }
     }
 
     public Double getCriteriaVal (String criteria, Apple other){
