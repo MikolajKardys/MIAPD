@@ -3,19 +3,40 @@ package GUI;
 import management.WindowObserver;
 
 import javax.swing.*;
+import java.util.LinkedList;
 
 public class RankingWindow extends JFrame {
-    private final JPanel mainPanel;
+    public static class Pair<L,R> {
+        private final L l;
+        private final R r;
+        public Pair(L l, R r){
+            this.l = l;
+            this.r = r;
+        }
+    }
 
     public RankingWindow(WindowObserver windowObserver, double [] w) {
         int wSize = w.length;
 
-        mainPanel = new JPanel();
+        JPanel mainPanel = new JPanel();
 
-        for(int i=0; i<wSize; i++) {
+        LinkedList<Pair<Double, String>> ranking = new LinkedList<>();
+
+        for(int i=0; i<wSize; i++)
+            ranking.add(new Pair<>(w[i], windowObserver.getIthAppleName(i)));
+
+        ranking.sort((o1, o2) -> {
+            if(o1.l > o2.l)
+                return -1;
+            else if(o1.l < o2.l)
+                return 1;
+            return 0;
+        });
+
+        for(int i=0; i<ranking.size(); i++) {
             JLabel label = new JLabel();
             label.setBounds(100, 50 + 55*i, 200, 30);
-            label.setText(i + ". " + windowObserver.getIthAppleName(i) + ": " + w[i]);
+            label.setText(i+1 + ".   " + ranking.get(i).r + ":   " + Math.round(1000*ranking.get(i).l)/1000.);
             mainPanel.add(label);
         }
 
