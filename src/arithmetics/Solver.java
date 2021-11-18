@@ -1,9 +1,28 @@
 package arithmetics;
 
+import CriterionTree.CriterionTreeNode;
 import Jama.*;
+
+import javax.swing.tree.TreeNode;
 
 
 public class Solver {
+    public double [] solveMultipleCriterion(CriterionTreeNode root) {
+        calculateRankingVector(root);
+
+
+        return new double[0];
+    }
+
+    private void calculateRankingVector(CriterionTreeNode node) {
+        //CriterionTreeNode criterionNode = (CriterionTreeNode)node;
+
+        node.setRankingVector(solveForEVM(node.getC()));
+
+        for(int i=0; i<node.getChildCount(); i++)
+            calculateRankingVector((CriterionTreeNode)node.getChildAt(i));
+    }
+
     public static double [] solveForEVM(double [][] C_) {
         int numberOfAlternatives = C_.length;
         double [] w = new double[numberOfAlternatives];
