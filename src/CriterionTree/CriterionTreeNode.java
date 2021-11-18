@@ -3,36 +3,20 @@ package CriterionTree;
 import javax.swing.tree.TreeNode;
 import java.util.*;
 
-
 public class CriterionTreeNode implements TreeNode {
     private final CriterionTreeNode parent;
     private final List<CriterionTreeNode> children;
 
-    private final double [][] C;
-    private double [] w;
     private final String criterionName;
 
-    public CriterionTreeNode(double C[][], CriterionTreeNode parent, String criterionName) {
+    public CriterionTreeNode(CriterionTreeNode parent, String criterionName) {
         this.parent = parent;
         this.criterionName = criterionName;
 
         if(parent != null)
             this.parent.children.add(this);
+
         children = new ArrayList<>();
-
-        this.C = C;
-    }
-
-    public double[][] getC() {
-        return C;
-    }
-
-    public void setRankingVector(double [] w) {
-        this.w = w;
-    }
-
-    public double [] getRankingVector() {
-        return w;
     }
 
     @Override
