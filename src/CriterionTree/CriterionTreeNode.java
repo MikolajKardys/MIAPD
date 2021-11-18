@@ -29,7 +29,6 @@ public class CriterionTreeNode implements TreeNode {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CriterionTreeNode that = (CriterionTreeNode)o;
-        //maybe here should be tested C matrix
         return that.criterionName.equals(this.criterionName);
     }
 

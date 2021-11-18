@@ -1,29 +1,52 @@
 package arithmetics;
 
-import CriterionTree.CriterionTreeNode;
+import CriterionTree.CriterionTreeMap;
 import Jama.*;
 
 import javax.swing.tree.TreeNode;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class Solver {
-    public double [] solveMultipleCriterion(CriterionTreeNode root) {
-        calculateRankingVector(root);
+    public double [] solveMultipleCriterion(CriterionTreeMap treeMap) {
+        TreeNode root = treeMap.getRoot();
 
+        calculateRankingVector(treeMap, root, getAlternativeNumber(treeMap, root));
 
         return new double[0];
     }
 
-    private void calculateRankingVector(CriterionTreeNode node) {
-        //CriterionTreeNode criterionNode = (CriterionTreeNode)node;
-
-        node.setRankingVector(solveForEVM(node.getC()));
-
-        for(int i=0; i<node.getChildCount(); i++)
-            calculateRankingVector((CriterionTreeNode)node.getChildAt(i));
+    private int getAlternativeNumber(CriterionTreeMap map, TreeNode node) {
+        if(node.getChildCount() > 0)
+            return getAlternativeNumber(map, node.getChildAt(0));
+        return map.get(node).length;
     }
 
-    public static double [] solveForEVM(double [][] C_) {
+    private double [] calculateRankingVector(CriterionTreeMap map, TreeNode node, int alternativeNumber) {
+        List<double[]> rankingVectors = new ArrayList<>();
+
+        for(int i=0; i<node.getChildCount(); i++)
+            rankingVectors.add(calculateRankingVector(map, node.getChildAt(i), alternativeNumber));
+
+        double [] currentNodeRanking = solveForEVM(map.get(node));
+
+        if(node.getChildCount() == 0) {
+            return currentNodeRanking;
+        } else {
+            double[] resultRanking = new double[alternativeNumber];
+
+            for (int i=0; i<alternativeNumber; i++) {
+                resultRanking[i] = 0;
+                for (int j=0; j<rankingVectors.size(); j++)
+                    resultRanking[i] += rankingVectors.get(j)[i]*currentNodeRanking[j];
+            }
+
+            return resultRanking;
+        }
+    }
+
+    private static double [] solveForEVM(double [][] C_) {
         int numberOfAlternatives = C_.length;
         double [] w = new double[numberOfAlternatives];
 
