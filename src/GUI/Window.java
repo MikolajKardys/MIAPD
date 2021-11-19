@@ -1,83 +1,39 @@
 package GUI;
 
+import CriterionTree.CriterionTreeMap;
 import management.WindowObserver;
 
 import javax.swing.*;
+import javax.swing.tree.TreeNode;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class Window extends JFrame {
-    private final JButton [] alternativesButtons;
     private WindowObserver windowObserver;
 
+    private final JPanel mainPanel = new JPanel();
+
+    private final List<JLabel> appleNameLabels = new ArrayList<>();
+    private final List<JButton> criterionListButtons = new ArrayList<>();
+
     public Window() {
-        alternativesButtons = new JButton[10];
-        for(int i=0; i<10; i++) {
-            alternativesButtons[i] = new JButton();
-            if(i%2==0)
-                alternativesButtons[i].setBounds(250, 300 + i/2 * 75, 240, 50);
-            else
-                alternativesButtons[i].setBounds(510, 300 + (i-1)/2 * 75, 240, 50);
-            alternativesButtons[i].setVisible(false);
-        }
+        addAlternativeLabels();
 
-        JTextField newAppleField = new JTextField();
-        newAppleField.setBounds(250, 25, 500, 50);
+        addCriterionButtons(windowObserver.getTreeMapRoot());
 
-        JButton addAppleButton = new JButton("Add apple");
-        addAppleButton.setBounds(250, 100, 240, 50);
-        addAppleButton.addActionListener(e -> {
-            if(!Objects.equals(newAppleField.getText(), "")) {
-                if (windowObserver.addApple(newAppleField.getText()))
-                    reloadList();
-
-                newAppleField.setText("");
-            }
-        });
-
-        JButton removeAppleButton = new JButton("Remove apple");
-        removeAppleButton.setBounds(510, 100, 240, 50);
-        removeAppleButton.addActionListener(e -> {
-            if(!Objects.equals(newAppleField.getText(), "")) {
-                if(windowObserver.removeApple(newAppleField.getText()))
-                    reloadList();
-
-                newAppleField.setText("");
-            }
-        });
-
-        JButton loadApplesButton = new JButton("Load apples from file");
-        loadApplesButton.setBounds(250, 180, 500, 50);
-        loadApplesButton.addActionListener(e -> {
-            /*
-            JFileChooser fileToOpen = new JFileChooser();
-
-            fileToOpen.setCurrentDirectory(new File("."));
-
-            int response = fileToOpen.showOpenDialog(null);
-
-            if(response == JFileChooser.APPROVE_OPTION) {
-
-            }
-            */
-        });
-
+        /*
         JButton getRankingButton = new JButton("Get ranking");
         getRankingButton.setBounds(800, 650, 150, 50);
         getRankingButton.addActionListener(e -> {
             if(windowObserver.isPCTableCorrect())
                 new RankingWindow(windowObserver, windowObserver.getRanking());
         });
+        */
 
-        JPanel mainPanel = new JPanel();
         mainPanel.setBounds(0,0, 1000, 750);
         mainPanel.setLayout(null);
-        mainPanel.add(addAppleButton);
-        mainPanel.add(removeAppleButton);
-        mainPanel.add(loadApplesButton);
-        mainPanel.add(newAppleField);
-        mainPanel.add(getRankingButton);
-        for(JButton alternativeButton : alternativesButtons)
-            mainPanel.add(alternativeButton);
 
         this.setTitle("Apple rank");
         this.setSize(1000, 750);
@@ -88,19 +44,33 @@ public class Window extends JFrame {
         this.setVisible(true);
     }
 
-    private void reloadList() {
-        for(int i=0; i<10; i++)
-            alternativesButtons[i].setVisible(false);
-
+    private void addAlternativeLabels() {
         for(int i=0; i<windowObserver.applesNumber(); i++) {
-            alternativesButtons[i].setText(windowObserver.getIthAppleName(i));
-            alternativesButtons[i].setVisible(true);
-
-            if(alternativesButtons[i].getActionListeners().length == 0) {
-                int finalI = i;
-                alternativesButtons[i].addActionListener(e -> new PCWindow(windowObserver, finalI));
-            }
+            JLabel appleLabel = new JLabel(windowObserver.getIthAppleName(i), SwingConstants.CENTER);
+            appleLabel.setBounds(50 + 225*(i%4), 25 + 50*(i/4), 200, 25);
+            appleLabel.setFont(new Font("Serif", Font.PLAIN, 16));
+            appleNameLabels.add(appleLabel);
+            mainPanel.add(appleLabel);
         }
+    }
+
+    private void addCriterionButtons(TreeNode node) {
+        String criterionName = node.toString();
+
+        int criterionNumber = criterionListButtons.size();
+
+        JButton criterionButton = new JButton(criterionName);
+        criterionButton.setBounds(50 + 225*(criterionNumber%4), 175 + 75*(criterionNumber/4), 200, 50);
+        criterionButton.setFont(new Font("Serif", Font.PLAIN, 16));
+        criterionButton.addActionListener( e -> {
+
+        });
+        criterionListButtons.add(criterionButton);
+        mainPanel.add(criterionButton);
+
+        if(node.getChildCount() > 0)
+            for(int i=0; i<node.getChildCount(); i++)
+                addCriterionButtons(node.getChildAt(i));
     }
 
     public void setWindowObserver(WindowObserver windowObserver) {

@@ -20,6 +20,11 @@ public class CriterionTreeNode implements TreeNode {
     }
 
     @Override
+    public String toString() {
+        return criterionName;
+    }
+
+    @Override
     public int hashCode() {
         return criterionName.hashCode();
     }

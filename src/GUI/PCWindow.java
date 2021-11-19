@@ -3,6 +3,7 @@ package GUI;
 import management.WindowObserver;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.LinkedList;
 import java.util.Objects;
 
@@ -10,70 +11,60 @@ public class PCWindow extends JFrame {
 
     private final LinkedList<JTextField> textFields = new LinkedList<>();
 
-    public PCWindow(WindowObserver windowObserver, int comparisonAppleIdx) {
-        JLabel titleLabel = new JLabel("Pairwise comparison with apple " +windowObserver.getIthAppleName(comparisonAppleIdx));
-        titleLabel.setBounds(50, 0, 200, 100);
-
+    public PCWindow(WindowObserver windowObserver, int comparisonIdx, int criterionName) {
         JPanel mainPanel = new JPanel();
-
+/*
         for(int i=0; i<windowObserver.applesNumber(); i++) {
-            if(i != comparisonAppleIdx) {
+            if(i != comparisonIdx) {
                 JTextField textField = new JTextField();
-                if(windowObserver.getCAt(comparisonAppleIdx, i) != 0)
-                    textField.setText(String.valueOf(Math.round(100000./windowObserver.getCAt(comparisonAppleIdx, i))/100000.));
+                if(windowObserver.getCAt(comparisonIdx, i) != 0)
+                    textField.setText(String.valueOf(Math.round(100000./windowObserver.getCAt(comparisonIdx, i))/100000.));
 
-                textField.setBounds(50, 100 + 55*i, 75, 30);
+                textField.setBounds(220, 25 + 50*i, 60, 40);
                 textFields.add(textField);
                 mainPanel.add(textField);
 
-                JLabel nameLabel = new JLabel(windowObserver.getIthAppleName(i));
-                nameLabel.setBounds(150, 100 + 55*i, 100, 30);
+                JLabel nameLabel = new JLabel(windowObserver.getIthAppleName(i) + " : " +
+                        windowObserver.getIthAppleName(comparisonIdx), SwingConstants.CENTER);
+                nameLabel.setBounds(10, 25 + 50*i, 200, 40);
+                nameLabel.setFont(new Font("Serif", Font.PLAIN, 16));
                 mainPanel.add(nameLabel);
             }
         }
 
         JButton setComparisonsButton = new JButton("Set PC");
-        setComparisonsButton.setBounds(150, 650, 100, 30);
+        setComparisonsButton.setBounds(10, 540, 270, 20);
 
         setComparisonsButton.addActionListener( e -> {
             for(int i=0; i<textFields.size(); i++) {
                 if(isValidDouble(i)) {
 
-                    if(i>=comparisonAppleIdx) {
-                        windowObserver.setCAt(comparisonAppleIdx, i+1, 1./toDouble(textFields.get(i).getText()));
-                        windowObserver.setCAt(i+1, comparisonAppleIdx, toDouble(textFields.get(i).getText()));
+                    if(i>=comparisonIdx) {
+                        windowObserver.setCAt(comparisonIdx, i+1, 1./toDouble(textFields.get(i).getText()));
+                        windowObserver.setCAt(i+1, comparisonIdx, toDouble(textFields.get(i).getText()));
                     }
                     else {
-                        windowObserver.setCAt(comparisonAppleIdx, i, 1./toDouble(textFields.get(i).getText()));
-                        windowObserver.setCAt(i, comparisonAppleIdx, toDouble(textFields.get(i).getText()));
+                        windowObserver.setCAt(comparisonIdx, i, 1./toDouble(textFields.get(i).getText()));
+                        windowObserver.setCAt(i, comparisonIdx, toDouble(textFields.get(i).getText()));
                     }
                 }
             }
-
-            /*
-            for(int i=0; i<10; i++) {
-                for(int j=0; j<10; j++) {
-                    System.out.print(C[i][j] + " ");
-                }
-                System.out.println("");
-            }
-             */
 
             this.dispose();
         });
 
-        mainPanel.setBounds(0,0, 300, 750);
+        mainPanel.setBounds(0,0, 300, 600);
         mainPanel.setLayout(null);
-        mainPanel.add(titleLabel);
         mainPanel.add(setComparisonsButton);
 
-        this.setTitle(windowObserver.getIthAppleName(comparisonAppleIdx));
-        this.setSize(300, 750);
+        this.setTitle(windowObserver.getIthAppleName(comparisonIdx));
+        this.setSize(300, 600);
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setResizable(false);
         this.setLayout(null);
         this.setVisible(true);
         this.add(mainPanel);
+        */
     }
 
     private boolean isValidDouble(int textFieldIndex) {
