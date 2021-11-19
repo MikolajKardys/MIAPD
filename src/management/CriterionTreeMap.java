@@ -108,6 +108,49 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
     }
 
 
+    private int getDepth(CriterionTreeNode criterion){
+        if (criterion.getParent() != null){
+            return 1 + getDepth(criterion.getParent());
+        }
+        return 0;
+    }
+    @Override
+    public int [] getGraphIndex(String criterionName){
+        CriterionTreeNode criterion = getCriterion(criterionName);
+
+        int [] index = new int [2];
+        if (criterion.getParent() == null){
+            return index;
+        }
+        index[0] = getDepth(criterion);
+
+        List<CriterionTreeNode> sameDepth = new ArrayList<>();
+        for (CriterionTreeNode node : keySet()){
+            if (getDepth(node) == index[0]){
+                sameDepth.add(node);
+            }
+        }
+        if (!(sameDepth.size() == 1)){
+            int inFront = 0;
+            for (CriterionTreeNode node : sameDepth){
+                int myParentOrd = getGraphIndex(criterionName)[1];
+                int otherParentOrd = getGraphIndex(node.getParent().toString())[1];
+
+                if (otherParentOrd < myParentOrd){
+                    inFront++;
+                }
+                else if (otherParentOrd == myParentOrd){
+                    if (node.toString().compareTo(criterionName) < 0){
+                        inFront++;
+                    }
+                }
+            }
+            index[1] = inFront;
+        }
+
+        return index;
+    }
+
     @SuppressWarnings("unchecked")
     public void writeToFile (String fileName) {
         StringBuilder appleString = new StringBuilder();

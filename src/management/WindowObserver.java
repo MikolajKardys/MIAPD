@@ -20,4 +20,6 @@ public interface WindowObserver {
     double [] getRanking();
 
     CriterionTreeNode getRoot();
+
+    int [] getGraphIndex(String criterionName);
 }
