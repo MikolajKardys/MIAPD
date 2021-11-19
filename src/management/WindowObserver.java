@@ -1,7 +1,5 @@
 package management;
 
-import javax.swing.tree.TreeNode;
-
 public interface WindowObserver {
     //return number of apples
     int applesNumber();
@@ -21,5 +19,5 @@ public interface WindowObserver {
     //return table (with size of apples number) which is ranking w of PC table
     double [] getRanking();
 
-    TreeNode getTreeMapRoot();
+    CriterionTreeNode getRoot();
 }

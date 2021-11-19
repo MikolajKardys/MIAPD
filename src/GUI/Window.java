@@ -1,14 +1,12 @@
 package GUI;
 
-import CriterionTree.CriterionTreeMap;
+import management.CriterionTreeNode;
 import management.WindowObserver;
 
 import javax.swing.*;
-import javax.swing.tree.TreeNode;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class Window extends JFrame {
     private WindowObserver windowObserver;
@@ -18,10 +16,12 @@ public class Window extends JFrame {
     private final List<JLabel> appleNameLabels = new ArrayList<>();
     private final List<JButton> criterionListButtons = new ArrayList<>();
 
-    public Window() {
+    public Window(WindowObserver windowObserver) {
+        this.windowObserver = windowObserver;
+
         addAlternativeLabels();
 
-        addCriterionButtons(windowObserver.getTreeMapRoot());
+        addCriterionButtons(windowObserver.getRoot());
 
         /*
         JButton getRankingButton = new JButton("Get ranking");
@@ -54,7 +54,7 @@ public class Window extends JFrame {
         }
     }
 
-    private void addCriterionButtons(TreeNode node) {
+    private void addCriterionButtons(CriterionTreeNode node) {
         String criterionName = node.toString();
 
         int criterionNumber = criterionListButtons.size();

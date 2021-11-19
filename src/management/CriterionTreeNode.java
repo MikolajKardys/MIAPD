@@ -1,9 +1,8 @@
-package CriterionTree;
+package management;
 
-import javax.swing.tree.TreeNode;
 import java.util.*;
 
-public class CriterionTreeNode implements TreeNode {
+public class CriterionTreeNode {
     private final CriterionTreeNode parent;
     private final List<CriterionTreeNode> children;
 
@@ -16,7 +15,7 @@ public class CriterionTreeNode implements TreeNode {
         if(parent != null)
             this.parent.children.add(this);
 
-        children = new ArrayList<>();
+        this.children = new ArrayList<>();
     }
 
     @Override
@@ -37,41 +36,19 @@ public class CriterionTreeNode implements TreeNode {
         return that.criterionName.equals(this.criterionName);
     }
 
-    @Override
-    public TreeNode getChildAt(int childIndex) {
+    public CriterionTreeNode getChildAt(int childIndex) {
         return children.get(childIndex);
     }
 
-    @Override
     public int getChildCount() {
         return children.size();
     }
 
-    @Override
-    public TreeNode getParent() {
+    public CriterionTreeNode getParent() {
         return parent;
     }
 
-    @Override
-    public int getIndex(TreeNode node) {
-        for(int i=0; i<children.size(); i++)
-            if(children.get(i).equals(node))
-                return i;
-        return -1;
-    }
-
-    @Override
-    public boolean getAllowsChildren() {
-        return true;
-    }
-
-    @Override
     public boolean isLeaf() {
         return children.size() == 0;
-    }
-
-    @Override
-    public Enumeration<? extends TreeNode> children() {
-        return Collections.enumeration(children);
     }
 }
