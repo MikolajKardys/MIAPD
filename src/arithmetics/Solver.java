@@ -1,29 +1,27 @@
 package arithmetics;
 
-import CriterionTree.CriterionTreeMap;
+import management.CriterionTreeMap;
 import Jama.*;
+import management.CriterionTreeNode;
 
-import javax.swing.tree.TreeNode;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class Solver {
-    public double [] solveMultipleCriterion(CriterionTreeMap treeMap) {
-        TreeNode root = treeMap.getRoot();
+    public static double [] solveMultipleCriterion(CriterionTreeMap treeMap) {
+        CriterionTreeNode root = treeMap.getRoot();
 
-        calculateRankingVector(treeMap, root, getAlternativeNumber(treeMap, root));
-
-        return new double[0];
+        return calculateRankingVector(treeMap, root, getAlternativeNumber(treeMap, root));
     }
 
-    private int getAlternativeNumber(CriterionTreeMap map, TreeNode node) {
+    private static int getAlternativeNumber(CriterionTreeMap map, CriterionTreeNode node) {
         if(node.getChildCount() > 0)
             return getAlternativeNumber(map, node.getChildAt(0));
         return map.get(node).length;
     }
 
-    private double [] calculateRankingVector(CriterionTreeMap map, TreeNode node, int alternativeNumber) {
+    private static double [] calculateRankingVector(CriterionTreeMap map, CriterionTreeNode node, int alternativeNumber) {
         List<double[]> rankingVectors = new ArrayList<>();
 
         for(int i=0; i<node.getChildCount(); i++)

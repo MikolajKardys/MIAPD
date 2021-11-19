@@ -1,12 +1,14 @@
 package management;
 
 import GUI.Window;
+import arithmetics.Solver;
 
-public class Engine extends AppleMatrix implements WindowObserver {
+import java.util.Arrays;
+
+public class Engine extends CriterionTreeMap{
     public void run() {
-        addCriteria("Jakość");
+        CriterionTreeMap newMap = readFromFile("example.json");
 
-        Window window = new Window();
-        window.setWindowObserver(this);
+        new Window(newMap);
     }
 }
