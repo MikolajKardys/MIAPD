@@ -1,0 +1,18 @@
+[
+  [{"CriterionName":"smak","ParentName":"root"},
+    {"CriterionName":"twardość","ParentName":"smak"},
+    {"CriterionName":"dostępność","ParentName":"root"},
+    {"CriterionName":"root","ParentName":""},
+    {"CriterionName":"cena","ParentName":"root"},
+    {"CriterionName":"słodycz","ParentName":"smak"}
+  ],
+  {"appleNames":"Fuji;Gala;Rubin;"},
+  [
+    {"Array":"[[1.0]]","CriterionName":"smak"},
+    {"Array":"[[1.0]]","CriterionName":"twardość"},
+    {"Array":"[[1.0]]","CriterionName":"dostępność"},
+    {"Array":"[[1.0]]","CriterionName":"root"},
+    {"Array":"[[1.0]]","CriterionName":"cena"},
+    {"Array":"[[1.0]]","CriterionName":"słodycz"}
+  ]
+]

@@ -1,77 +1,100 @@
 package GUI;
 
+import management.CriterionTreeNode;
 import management.WindowObserver;
 
 import javax.swing.*;
-import java.awt.*;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+
 
 public class PCWindow extends JFrame {
 
-    private final LinkedList<JTextField> textFields = new LinkedList<>();
+    private final List<JTextField> textFields = new ArrayList<>();
 
-    public PCWindow(WindowObserver windowObserver, int comparisonIdx, int criterionName) {
+    public PCWindow(WindowObserver windowObserver, CriterionTreeNode node) {
         JPanel mainPanel = new JPanel();
-/*
-        for(int i=0; i<windowObserver.applesNumber(); i++) {
-            if(i != comparisonIdx) {
-                JTextField textField = new JTextField();
-                if(windowObserver.getCAt(comparisonIdx, i) != 0)
-                    textField.setText(String.valueOf(Math.round(100000./windowObserver.getCAt(comparisonIdx, i))/100000.));
 
-                textField.setBounds(220, 25 + 50*i, 60, 40);
+        int labelNumber;
+        if(node.isLeaf()) {
+            labelNumber = windowObserver.applesNumber();
+            for(int i=0; i<windowObserver.applesNumber(); i++) {
+                JLabel label1 = new JLabel(windowObserver.getIthAppleName(i), SwingConstants.CENTER);
+                label1.setBounds(125 + i*(600/windowObserver.applesNumber()), 25, (600/windowObserver.applesNumber())-25, 25);
+                mainPanel.add(label1);
+
+                JLabel label2 = new JLabel(windowObserver.getIthAppleName(i), SwingConstants.CENTER);
+                label2.setBounds(25, 100 + i*(600/windowObserver.applesNumber()), 75, (600/windowObserver.applesNumber())-25);
+                mainPanel.add(label2);
+            }
+        } else {
+            labelNumber = node.getChildCount();
+            for(int i=0; i<node.getChildCount(); i++) {
+                JLabel label1 = new JLabel(node.getChildAt(i).toString(), SwingConstants.CENTER);
+                label1.setBounds(125 + i*(600/node.getChildCount()), 25, (600/node.getChildCount())-25, 25);
+                mainPanel.add(label1);
+
+                JLabel label2 = new JLabel(node.getChildAt(i).toString(), SwingConstants.CENTER);
+                label2.setBounds(25, 100 + i*(600/node.getChildCount()), 75, (600/node.getChildCount())-25);
+                mainPanel.add(label2);
+            }
+        }
+
+        for(int i=0; i<labelNumber; i++) {
+            for(int j=0; j<labelNumber; j++) {
+                JTextField textField;
+                if(i<j)
+                    textField = new JTextField(String.valueOf(Math.round(1000*windowObserver.getCAt(i,j,node.toString()))/1000.0));
+                else
+                    textField = new JTextField(String.valueOf(Math.round(1000*(1.0/windowObserver.getCAt(j,i,node.toString())))/1000.0));
+                textField.setBounds(125 + j*(600/labelNumber), 100 + i*(600/labelNumber), (600/labelNumber)-25, (600/labelNumber)-25);
                 textFields.add(textField);
+                if(i>=j)
+                    textField.setEditable(false);
                 mainPanel.add(textField);
-
-                JLabel nameLabel = new JLabel(windowObserver.getIthAppleName(i) + " : " +
-                        windowObserver.getIthAppleName(comparisonIdx), SwingConstants.CENTER);
-                nameLabel.setBounds(10, 25 + 50*i, 200, 40);
-                nameLabel.setFont(new Font("Serif", Font.PLAIN, 16));
-                mainPanel.add(nameLabel);
             }
         }
 
         JButton setComparisonsButton = new JButton("Set PC");
-        setComparisonsButton.setBounds(10, 540, 270, 20);
-
+        setComparisonsButton.setBounds(25, 25, 75, 50);
         setComparisonsButton.addActionListener( e -> {
-            for(int i=0; i<textFields.size(); i++) {
-                if(isValidDouble(i)) {
+            int i, j;
+            for(int k=0; k<textFields.size(); k++) {
+                i = k/labelNumber;
+                j = k%labelNumber;
 
-                    if(i>=comparisonIdx) {
-                        windowObserver.setCAt(comparisonIdx, i+1, 1./toDouble(textFields.get(i).getText()));
-                        windowObserver.setCAt(i+1, comparisonIdx, toDouble(textFields.get(i).getText()));
-                    }
-                    else {
-                        windowObserver.setCAt(comparisonIdx, i, 1./toDouble(textFields.get(i).getText()));
-                        windowObserver.setCAt(i, comparisonIdx, toDouble(textFields.get(i).getText()));
-                    }
+                if(i < j) {
+                    if(isValidDouble(k)) {
+                        windowObserver.setCAt(i, j, node.toString(), toDouble(textFields.get(k).getText()));
+                        windowObserver.setCAt(j, i, node.toString(), 1.0/toDouble(textFields.get(k).getText()));
+                    } else
+                        textFields.get(k).setText("");
+                }
+                else {
+                    textFields.get(k).setText(String.valueOf(Math.round(1000*windowObserver.getCAt(i,j,node.toString()))/1000.0));
                 }
             }
-
-            this.dispose();
         });
-
-        mainPanel.setBounds(0,0, 300, 600);
-        mainPanel.setLayout(null);
         mainPanel.add(setComparisonsButton);
 
-        this.setTitle(windowObserver.getIthAppleName(comparisonIdx));
-        this.setSize(300, 600);
+        mainPanel.setBounds(0,0, 750, 750);
+        mainPanel.setLayout(null);
+
+        this.setTitle(node.toString());
+        this.setSize(750, 750);
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setResizable(false);
         this.setLayout(null);
         this.setVisible(true);
         this.add(mainPanel);
-        */
+
     }
 
     private boolean isValidDouble(int textFieldIndex) {
         if(Objects.equals(textFields.get(textFieldIndex).getText(), "")) {
             return false;
-        }
-        else {
+        } else {
             String text = textFields.get(textFieldIndex).getText();
 
             try {

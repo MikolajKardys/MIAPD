@@ -3,6 +3,8 @@ package GUI;
 import management.WindowObserver;
 
 import javax.swing.*;
+import java.awt.*;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 public class RankingWindow extends JFrame {
@@ -34,9 +36,9 @@ public class RankingWindow extends JFrame {
         });
 
         for(int i=0; i<ranking.size(); i++) {
-            JLabel label = new JLabel();
-            label.setBounds(100, 50 + 55*i, 200, 30);
-            label.setText(i+1 + ".   " + ranking.get(i).r + ":   " + Math.round(1000*ranking.get(i).l)/1000.);
+            JLabel label = new JLabel(i+1 + ".   " + ranking.get(i).r + ":   " + Math.round(1000*ranking.get(i).l)/1000., SwingConstants.CENTER);
+            label.setBounds(25, 50 + 55*i, 325, 30);
+            label.setFont(new Font("Serif", Font.PLAIN, 24));
             mainPanel.add(label);
         }
 

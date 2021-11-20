@@ -1,5 +1,6 @@
 package management;
 
+import arithmetics.Solver;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -99,14 +100,13 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
 
     @Override
     public boolean isPCTablesCorrect() {
-        return false;
+        return true;
     }
 
     @Override
     public double[] getRanking() {
-        return new double[0];
+        return Solver.solveMultipleCriterion(this);
     }
-
 
     @SuppressWarnings("unchecked")
     public void writeToFile (String fileName) {
@@ -183,15 +183,16 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
                 CriterionTreeNode node =
                         newMap.getCriterion((String) ((JSONObject) array).get("CriterionName"));
 
-                String str = (String) ((JSONObject) array).get("Array");
-                String[][] arr = Arrays.stream(str.substring(2, str.length() - 2).split("\\],\\["))
-                        .map(e -> Arrays.stream(e.split("\\s*,\\s*"))
-                                .toArray(String[]::new)).toArray(String[][]::new);
+                String str = ((String) ((JSONObject) array).get("Array")).
+                        replace("]", "").replace("[","").replace(",","");
 
-                double[][] intArray = new double[arr.length][arr.length];
-                for (int c = 0; c < arr.length; c++)
-                    for (int r = 0; r < arr.length; r++)
-                        intArray[c][r] = Double.parseDouble(arr[c][r]);
+                List<String> numbers = List.of(str.split(" "));
+                int size = (int)(Math.sqrt(numbers.size()));
+
+                double[][] intArray = new double[size][size];
+                for (int i = 0; i < size; i++)
+                    for (int j = 0; j < size; j++)
+                        intArray[i][j] = Double.parseDouble(numbers.get(size * i + j));
 
                 newMap.put(node, intArray);
             }

@@ -5,6 +5,7 @@ import Jama.*;
 import management.CriterionTreeNode;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -12,29 +13,23 @@ public class Solver {
     public static double [] solveMultipleCriterion(CriterionTreeMap treeMap) {
         CriterionTreeNode root = treeMap.getRoot();
 
-        return calculateRankingVector(treeMap, root, getAlternativeNumber(treeMap, root));
+        return calculateRankingVector(treeMap, root);
     }
 
-    private static int getAlternativeNumber(CriterionTreeMap map, CriterionTreeNode node) {
-        if(node.getChildCount() > 0)
-            return getAlternativeNumber(map, node.getChildAt(0));
-        return map.get(node).length;
-    }
-
-    private static double [] calculateRankingVector(CriterionTreeMap map, CriterionTreeNode node, int alternativeNumber) {
+    private static double [] calculateRankingVector(CriterionTreeMap map, CriterionTreeNode node) {
         List<double[]> rankingVectors = new ArrayList<>();
 
         for(int i=0; i<node.getChildCount(); i++)
-            rankingVectors.add(calculateRankingVector(map, node.getChildAt(i), alternativeNumber));
+            rankingVectors.add(calculateRankingVector(map, node.getChildAt(i)));
 
         double [] currentNodeRanking = solveForEVM(map.get(node));
 
         if(node.getChildCount() == 0) {
             return currentNodeRanking;
         } else {
-            double[] resultRanking = new double[alternativeNumber];
+            double[] resultRanking = new double[map.applesNumber()];
 
-            for (int i=0; i<alternativeNumber; i++) {
+            for (int i=0; i<map.applesNumber(); i++) {
                 resultRanking[i] = 0;
                 for (int j=0; j<rankingVectors.size(); j++)
                     resultRanking[i] += rankingVectors.get(j)[i]*currentNodeRanking[j];
@@ -53,7 +48,9 @@ public class Solver {
             return w;
         }
 
-        Matrix C = new Matrix(C_);
+        double [][] CBack = Arrays.stream(C_).map(double[]::clone).toArray(double[][]::new);
+
+        Matrix C = new Matrix(CBack);
 
         EigenvalueDecomposition eigenValues = C.eig();
         double [] eigenValuesImg = eigenValues.getImagEigenvalues();

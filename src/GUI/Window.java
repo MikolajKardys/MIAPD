@@ -20,20 +20,22 @@ public class Window extends JFrame {
         this.windowObserver = windowObserver;
 
         addAlternativeLabels();
-
         addCriterionButtons(windowObserver.getRoot());
 
-        /*
         JButton getRankingButton = new JButton("Get ranking");
-        getRankingButton.setBounds(800, 650, 150, 50);
+        getRankingButton.setBounds(50, 650, 875, 25);
         getRankingButton.addActionListener(e -> {
-            if(windowObserver.isPCTableCorrect())
+            if(true) {
                 new RankingWindow(windowObserver, windowObserver.getRanking());
+            }
+
+            /*if(windowObserver.isPCTablesCorrect())
+                new RankingWindow(windowObserver, windowObserver.getRanking());*/
         });
-        */
 
         mainPanel.setBounds(0,0, 1000, 750);
         mainPanel.setLayout(null);
+        mainPanel.add(getRankingButton);
 
         this.setTitle("Apple rank");
         this.setSize(1000, 750);
@@ -63,7 +65,7 @@ public class Window extends JFrame {
         criterionButton.setBounds(50 + 225*(criterionNumber%4), 175 + 75*(criterionNumber/4), 200, 50);
         criterionButton.setFont(new Font("Serif", Font.PLAIN, 16));
         criterionButton.addActionListener( e -> {
-
+            new PCWindow(windowObserver, node);
         });
         criterionListButtons.add(criterionButton);
         mainPanel.add(criterionButton);
