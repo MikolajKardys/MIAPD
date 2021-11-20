@@ -8,6 +8,8 @@ import org.json.simple.parser.ParseException;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> implements WindowObserver{
     private final List<String> apples = new ArrayList<>();
@@ -202,5 +204,46 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
         }
 
         return newMap;
+    }
+
+    private int getDepth(CriterionTreeNode criterion){
+        if (criterion.getParent() != null){
+            return 1 + getDepth(criterion.getParent());
+        }
+        return 0;
+    }
+    @Override
+    public Map<CriterionTreeNode, int[]> getNodeOrder(){
+        Map<CriterionTreeNode, int[]> orderMap = new HashMap<>();
+        orderMap.put(getRoot(), new int[]{0, 0});
+
+        int depth = 1;
+        int finalDepth_0 = depth;
+        List<CriterionTreeNode> currNodes = (new ArrayList<>(keySet())).stream()
+                .filter(e -> getDepth(e) == finalDepth_0).collect(Collectors.toList());;
+        while(!currNodes.isEmpty()){
+            currNodes.sort((o1, o2) -> {
+                int o1Parent = orderMap.get(o1.getParent())[1];
+                int o2Parent = orderMap.get(o2.getParent())[1];
+
+                if (o1Parent != o2Parent)
+                    return o1Parent - o2Parent;
+
+                if (o1.getChildCount() != o2.getChildCount())
+                    return o2.getChildCount() - o1.getChildCount();
+
+                return o1.toString().compareTo(o2.toString());
+            });
+            for (int i = 0; i < currNodes.size(); i++){
+                orderMap.put(currNodes.get(i), new int[]{depth, i});
+            }
+
+            depth++;
+            int finalDepth_1 = depth;
+            currNodes = (new ArrayList<>(keySet())).stream()
+                    .filter(e -> getDepth(e) == finalDepth_1).collect(Collectors.toList());;
+        }
+
+        return orderMap;
     }
 }

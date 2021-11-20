@@ -1,5 +1,7 @@
 package management;
 
+import java.util.Map;
+
 public interface WindowObserver {
     //return number of apples
     int applesNumber();
@@ -20,4 +22,6 @@ public interface WindowObserver {
     double [] getRanking();
 
     CriterionTreeNode getRoot();
+
+    Map<CriterionTreeNode, int[]> getNodeOrder();
 }

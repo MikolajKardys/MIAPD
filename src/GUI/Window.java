@@ -5,8 +5,10 @@ import management.WindowObserver;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Window extends JFrame {
     private WindowObserver windowObserver;
@@ -16,8 +18,12 @@ public class Window extends JFrame {
     private final List<JLabel> appleNameLabels = new ArrayList<>();
     private final List<JButton> criterionListButtons = new ArrayList<>();
 
+    private final Map<CriterionTreeNode, int[]> orderMap;
+
     public Window(WindowObserver windowObserver) {
         this.windowObserver = windowObserver;
+
+        orderMap = windowObserver.getNodeOrder();
 
         addAlternativeLabels();
         addCriterionButtons(windowObserver.getRoot());
@@ -59,10 +65,11 @@ public class Window extends JFrame {
     private void addCriterionButtons(CriterionTreeNode node) {
         String criterionName = node.toString();
 
-        int criterionNumber = criterionListButtons.size();
-
         JButton criterionButton = new JButton(criterionName);
-        criterionButton.setBounds(50 + 225*(criterionNumber%4), 175 + 75*(criterionNumber/4), 200, 50);
+
+        int [] index = orderMap.get(node);
+        criterionButton.setBounds(50 + 225*index[1], 175 + 75*index[0], 200, 50);
+
         criterionButton.setFont(new Font("Serif", Font.PLAIN, 16));
         criterionButton.addActionListener( e -> {
             new PCWindow(windowObserver, node);
@@ -81,5 +88,24 @@ public class Window extends JFrame {
 
     public void removeWindowObserver() {
         this.windowObserver = null;
+    }
+
+
+    private void paintRec(Graphics2D g2, CriterionTreeNode node){
+        int [] index_1 = orderMap.get(node);
+        for (int i = 0; i < node.getChildCount(); i++){
+            int [] index_2 = orderMap.get(node.getChildAt(i));
+            Line2D lin = new Line2D.Double(
+                    150 + 225*index_1[1], 225 + 75*index_1[0],
+                    150 + 225*index_2[1], 225 + 75*index_2[0]
+            );
+            g2.draw(lin);
+            paintRec(g2, node.getChildAt(i));
+        }
+    }
+
+    public void paint(Graphics g) {
+        super.paint(g);
+        paintRec((Graphics2D) g, windowObserver.getRoot());
     }
 }
