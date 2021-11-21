@@ -8,12 +8,51 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.javatuples.Pair;
 
 public class Solver {
     public static double [] solveMultipleCriterion(CriterionTreeMap treeMap) {
         CriterionTreeNode root = treeMap.getRoot();
 
         return calculateRankingVector(treeMap, root);
+    }
+
+    public static double ambiguityIndex(double [][] C) {
+        int n = C.length;
+        Pair<Double, Double> [][] R = new Pair [n][n];
+
+        for(int i=0; i<n; i++)
+            for(int j=0; j<n; j++)
+                R[i][j] = new Pair<>(r_min(C, n, i, j), r_max(C, n, i, j));
+
+        double ISH = 0;
+        for(int i=0; i<n-1; i++)
+            for(int j=i+1; j<n; j++)
+                ISH += (R[i][j].getValue1() - R[i][j].getValue0())/((1+R[i][j].getValue1())*(1+R[i][j].getValue0()));
+
+        return ISH;
+    }
+
+    public static double KoczkodajIndex(double [][] C) {
+        return 0.0;
+    }
+
+    private static double r_min(double [][] C, int n, int i, int j) {
+        double r = C[i][0]*C[0][j];
+        for(int k=1; k<n; k++)
+            if(C[i][k]*C[k][j] < r)
+                r = C[i][k]*C[k][j];
+
+        return r;
+    }
+
+    private static double r_max(double [][] C, int n, int i, int j) {
+        double r = C[i][0]*C[0][j];
+        for(int k=1; k<n; k++)
+            if(C[i][k]*C[k][j] > r)
+                r = C[i][k]*C[k][j];
+
+        return r;
     }
 
     private static double [] calculateRankingVector(CriterionTreeMap map, CriterionTreeNode node) {
