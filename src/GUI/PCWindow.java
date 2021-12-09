@@ -1,7 +1,6 @@
 package GUI;
 
 import management.CriterionTreeNode;
-import management.WindowObserver;
 
 import javax.swing.*;
 import java.util.ArrayList;

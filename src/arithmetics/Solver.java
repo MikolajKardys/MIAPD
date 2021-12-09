@@ -4,108 +4,51 @@ import management.CriterionTreeMap;
 import Jama.*;
 import management.CriterionTreeNode;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
-import org.javatuples.Pair;
 
 public class Solver {
-    public static double [] solveMultipleCriterion(CriterionTreeMap treeMap) {
+    public static double [] solveMultipleCriterion(CriterionTreeMap treeMap, PrioritizationMethod method) throws IllegalArgumentException {
         CriterionTreeNode root = treeMap.getRoot();
 
-        return calculateRankingVector(treeMap, root);
+        return calculateRankingVector(treeMap, root, method);
     }
 
-
-    //ISH - inconsistency index Salo Hamalainen
-    public static double ambiguityIndex(double [][] C) {
+    private static void adjustIncompleteMatrixForEVM(double [][] C) {
         int n = C.length;
-        Pair<Double, Double> [][] R = new Pair [n][n];
+        int rowEmpty;
+        double threshold = 1e-16;
 
-        for(int i=0; i<n; i++)
-            for(int j=0; j<n; j++)
-                R[i][j] = new Pair<>(r_min(C, n, i, j), r_max(C, n, i, j));
-
-        double ISH = 0;
-        for(int i=0; i<n-1; i++)
-            for(int j=i+1; j<n; j++)
-                ISH += (R[i][j].getValue1() - R[i][j].getValue0())/((1+R[i][j].getValue1())*(1+R[i][j].getValue0()));
-
-        ISH /= (n*(n-1)*0.5);
-
-        return ISH;
+        for(int i=0; i<n; i++) {
+            rowEmpty = 0;
+            for(int j=0; j<n; j++) {
+                if(i != j && Math.abs(C[i][j]) <= threshold)
+                    rowEmpty++;
+            }
+            C[i][i] = 1.0 + rowEmpty;
+        }
     }
 
-    private static double r_min(double [][] C, int n, int i, int j) {
-        double r = C[i][0]*C[0][j];
-        for(int k=1; k<n; k++)
-            if(C[i][k]*C[k][j] < r)
-                r = C[i][k]*C[k][j];
-
-        return r;
-    }
-
-    private static double r_max(double [][] C, int n, int i, int j) {
-        double r = C[i][0]*C[0][j];
-        for(int k=1; k<n; k++)
-            if(C[i][k]*C[k][j] > r)
-                r = C[i][k]*C[k][j];
-
-        return r;
-    }
-
-
-    //index of determinants is used as inconsistency index
-    public static double indexOfDeterminants(double [][] C) {
-        int n = C.length;
-        double CIStar = 0.0;
-
-        for(int i=0; i<n; i++)
-            for(int j=i; j<n; j++)
-                for(int k=j; k<n; k++)
-                    CIStar += detT(C, i, j, k);
-
-        CIStar /= (n*(n-1)*(n-2)/6.0);
-
-        return CIStar;
-    }
-
-    private static double detT(double [][] C, int i, int j, int k) {
-        return C[i][j]*C[k][j]/C[i][k] + C[i][k]/(C[i][j]*C[k][j]) - 2.0;
-    }
-
-
-    //0 <= K(C) <= 1
-    //K - Koczkodaj inconsistency index
-    //it can show which part of C matrix cause the biggest inconsistency
-    public static double KoczkodajIndex(double [][] C) {
-        int n = C.length;
-        double K = 0.0, tmpK;
-
-        for(int i=0; i<n; i++)
-            for(int j=i+1; j<n; j++)
-                for(int k=j+1; k<n; k++) {
-                    tmpK = K(C, i, j, k);
-                    if (K < tmpK)
-                        K = tmpK;
-                }
-
-        return K;
-    }
-
-    private static double K(double [][] C, int i, int j, int k) {
-        return Math.min(Math.abs(1-C[i][k]*C[k][j]/C[i][j]), Math.abs(1-C[i][j]/(C[i][k]*C[k][j])));
-    }
-    
-
-    private static double [] calculateRankingVector(CriterionTreeMap map, CriterionTreeNode node) {
+    private static double [] calculateRankingVector(CriterionTreeMap map, CriterionTreeNode node, PrioritizationMethod method) throws IllegalArgumentException{
         List<double[]> rankingVectors = new ArrayList<>();
 
         for(int i=0; i<node.getChildCount(); i++)
-            rankingVectors.add(calculateRankingVector(map, node.getChildAt(i)));
+            rankingVectors.add(calculateRankingVector(map, node.getChildAt(i), method));
 
-        double [] currentNodeRanking = solveForEVM(map.get(node));
+        double [] currentNodeRanking;
+        double [][] C = map.get(node);
+        if(method == PrioritizationMethod.EVM) {
+            if(graphCoherence.isConnected(C))
+                currentNodeRanking = solveForIncompleteEVM(C);
+            else
+                throw new IllegalArgumentException("PC table for " + node + " isn't connected");
+        } else if(method == PrioritizationMethod.GMM)
+            if(graphCoherence.isConnected(C))
+                currentNodeRanking = solveIncompleteForGMM(C);
+            else
+                throw new IllegalArgumentException("PC table for " + node + " isn't connected");
+        else
+            throw new IllegalArgumentException("There is no such method");
 
         if(node.getChildCount() == 0) {
             return currentNodeRanking;
@@ -117,20 +60,68 @@ public class Solver {
                 for (int j=0; j<rankingVectors.size(); j++)
                     resultRanking[i] += rankingVectors.get(j)[i]*currentNodeRanking[j];
             }
-
             return resultRanking;
         }
     }
 
-    private static double [] solveForEVM(double [][] C_) {
-        int numberOfAlternatives = C_.length;
-        double [] w = new double[numberOfAlternatives];
+    private static double [] solveIncompleteForGMM(double [][] C) {
+        int n = C.length;
+        Matrix G = new Matrix(n, n);
+        Matrix r = new Matrix(n, 1);
+        double threshold = 1e-16;
+        int s_i;
 
-        if(numberOfAlternatives == 1) {
-            w[0] = 1;
-            return w;
+        for(int i=0; i<n; i++) {
+            s_i = 0;
+            for(int j=0; j<n; j++) {
+                if(i != j) {
+                    if (Math.abs(C[i][j]) <= threshold) {
+                        s_i++;
+                        G.set(i, j, 1.0);
+                    } else
+                        r.set(i, 0, r.get(i, 0) + Math.log(C[i][j]));
+                }
+            }
+            G.set(i, i, n - s_i);
+        }
+        Matrix w_ = G.solve(r);
+        double [] w = new double[n];
+        double wSum = 0;
+
+        for(int i=0; i<n; i++) {
+            w[i] = Math.exp(w_.get(i, 0));
+            wSum += w[i];
         }
 
+        for(int i=0; i<n; i++)
+            w[i] /= wSum;
+
+        return w;
+    }
+
+    private static double [] solveForGMM(double [][] C) {
+        int n = C.length;
+        double [] w = new double[n];
+        double wSum = 0;
+
+        for(int i=0; i<n; i++) {
+            w[i] = 1;
+            for(int k=0; k<n; k++)
+                w[i] *= C[i][k];
+            w[i] = Math.pow(w[i], 1.0/n);
+            wSum += w[i];
+        }
+
+        for(int i=0; i<n; i++)
+            w[i] /= wSum;
+
+        return w;
+    }
+
+    public static double [] solveForIncompleteEVM(double [][] C_) {
+        adjustIncompleteMatrixForEVM(C_);
+        int n = C_.length;
+        double [] w = new double[n];
         double [][] CBack = Arrays.stream(C_).map(double[]::clone).toArray(double[][]::new);
 
         Matrix C = new Matrix(CBack);
@@ -141,28 +132,28 @@ public class Solver {
 
         double lambdaMax = -1;
         double threshold = 1e-16;
-        for(int i=0; i<numberOfAlternatives; i++)
+        for(int i=0; i<n; i++)
             if(Math.abs(eigenValuesImg[i]) <= threshold && eigenValuesReal[i] > lambdaMax)
                 lambdaMax = eigenValuesReal[i];
 
-        Matrix B = new Matrix(numberOfAlternatives, 1);
-        for(int i=0; i<numberOfAlternatives; i++) {
+        Matrix B = new Matrix(n, 1);
+        for(int i=0; i<n; i++) {
             C.set(i, i, C.get(i, i) - lambdaMax);
-            B.set(i,0, -C.get(i,numberOfAlternatives-1));
+            B.set(i,0, -C.get(i,n-1));
         }
 
-        Matrix T = C.getMatrix(0, numberOfAlternatives-1, 0, numberOfAlternatives-2);
+        Matrix T = C.getMatrix(0, n-1, 0, n-2);
 
         Matrix w_ = T.solve(B);
         double wSum = 0;
-        for(int i = 0; i<numberOfAlternatives-1; i++) {
+        for(int i = 0; i<n-1; i++) {
             w[i] = w_.get(i, 0);
             wSum += w[i];
         }
         wSum += 1;
-        w[numberOfAlternatives-1] = 1;
+        w[n-1] = 1;
 
-        for(int i = 0; i<numberOfAlternatives; i++)
+        for(int i = 0; i<n; i++)
             w[i] /= wSum;
 
         return w;

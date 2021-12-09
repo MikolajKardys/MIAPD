@@ -1,4 +1,6 @@
-package management;
+package GUI;
+
+import management.CriterionTreeNode;
 
 import java.util.Map;
 

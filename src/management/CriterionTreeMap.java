@@ -1,5 +1,7 @@
 package management;
 
+import GUI.WindowObserver;
+import arithmetics.PrioritizationMethod;
 import arithmetics.Solver;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -9,9 +11,8 @@ import org.json.simple.parser.ParseException;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> implements WindowObserver{
+public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> implements WindowObserver {
     private final List<String> apples = new ArrayList<>();
 
     private List<CriterionTreeNode> getLeavesRec(CriterionTreeNode node){
@@ -107,7 +108,7 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
 
     @Override
     public double[] getRanking() {
-        return Solver.solveMultipleCriterion(this);
+        return Solver.solveMultipleCriterion(this, PrioritizationMethod.EVM);
     }
 
     @SuppressWarnings("unchecked")

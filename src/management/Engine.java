@@ -1,6 +1,7 @@
 package management;
 
 import GUI.Window;
+import arithmetics.Solver;
 
 
 public class Engine extends CriterionTreeMap{

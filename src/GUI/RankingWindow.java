@@ -1,10 +1,7 @@
 package GUI;
 
-import management.WindowObserver;
-
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
 import java.util.LinkedList;
 
 public class RankingWindow extends JFrame {
