@@ -6,6 +6,7 @@ import management.CriterionTreeNode;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Line2D;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,27 +30,51 @@ public class Window extends JFrame {
         addCriterionButtons(windowObserver.getRoot());
 
         JButton getRankingButton = new JButton("Get ranking");
-        getRankingButton.setBounds(100, 600, 825, 25);
+        getRankingButton.setBounds(100, 600, 800, 25);
         getRankingButton.addActionListener(e -> {
             if(true) {
-                new RankingWindow(windowObserver, windowObserver.getRanking());
+                new RankingWindow(this, windowObserver, windowObserver.getRanking());
             }
 
             /*if(windowObserver.isPCTablesCorrect())
                 new RankingWindow(windowObserver, windowObserver.getRanking());*/
         });
 
-        JButton loadFile = new JButton("Load file");
-        loadFile.setBounds(100, 650, 400, 25);
-        loadFile.addActionListener(e -> {
-            CriterionTreeMap newMap = CriterionTreeMap.readFromFile("example.json");
-            new Window(newMap);
-            this.dispose();
+        JButton loadFileButton = new JButton("Load file");
+        loadFileButton.setBounds(100, 650, 375, 25);
+        loadFileButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+            int result = fileChooser.showOpenDialog(this);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                CriterionTreeMap newMap = CriterionTreeMap.readFromFile(selectedFile.getAbsolutePath());
+                new Window(newMap);
+                this.dispose();
+            }
+        });
+
+        JButton saveFileButton = new JButton("Save file");
+        saveFileButton.setBounds(525, 650, 375, 25);
+        saveFileButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+
+            int userSelection = fileChooser.showSaveDialog(this);
+
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+                System.out.println("Save as file: " + fileToSave.getAbsolutePath());
+
+                windowObserver.writeToFile(fileToSave.getAbsolutePath());
+            }
         });
 
         mainPanel.setBounds(0,0, 1000, 750);
         mainPanel.setLayout(null);
         mainPanel.add(getRankingButton);
+        mainPanel.add(loadFileButton);
+        mainPanel.add(saveFileButton);
 
         this.setTitle("Apple rank");
         this.setSize(1000, 750);
@@ -80,7 +105,7 @@ public class Window extends JFrame {
 
         criterionButton.setFont(new Font("Serif", Font.PLAIN, 16));
         criterionButton.addActionListener( e -> {
-            new PCWindow(windowObserver, node);
+            new PCWindow(this, windowObserver, node);
         });
         criterionListButtons.add(criterionButton);
         mainPanel.add(criterionButton);

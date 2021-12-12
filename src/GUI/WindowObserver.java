@@ -29,4 +29,5 @@ public interface WindowObserver {
 
     Map<String, Double> getIncIndex(CriterionTreeNode node);
 
+    void writeToFile(String fileName);
 }

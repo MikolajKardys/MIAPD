@@ -1,11 +1,29 @@
 [
   [
-    {"CriterionName":"root","ParentName":""},
-    {"CriterionName":"smak","ParentName":"root"},
-    {"CriterionName":"cena","ParentName":"root"},
-    {"CriterionName":"dostępność", "ParentName":"root"},
-    {"CriterionName":"twardość", "ParentName":"smak"},
-    {"CriterionName":"słodycz", "ParentName":"smak"}
+    {
+      "CriterionName": "root",
+      "ParentName": ""
+    },
+    {
+      "CriterionName": "smak",
+      "ParentName": "root"
+    },
+    {
+      "CriterionName": "cena",
+      "ParentName": "root"
+    },
+    {
+      "CriterionName": "dostępność",
+      "ParentName": "root"
+    },
+    {
+      "CriterionName": "twardość",
+      "ParentName": "smak"
+    },
+    {
+      "CriterionName": "słodycz",
+      "ParentName": "smak"
+    }
   ],
     {"appleNames":"Fuji;Gala;Rubin;Antonówka;Ligol;Papierówka"},
   [

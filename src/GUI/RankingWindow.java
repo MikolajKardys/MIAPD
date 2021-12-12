@@ -2,6 +2,8 @@ package GUI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.LinkedList;
 
 public class RankingWindow extends JFrame {
@@ -14,7 +16,14 @@ public class RankingWindow extends JFrame {
         }
     }
 
-    public RankingWindow(WindowObserver windowObserver, double [] w) {
+    public RankingWindow(JFrame owner, WindowObserver windowObserver, double [] w) {
+        owner.setEnabled(false);
+        this.addWindowListener(new WindowAdapter(){
+            public void windowClosing(WindowEvent e){
+                owner.setEnabled(true);
+            }
+        });
+
         int wSize = w.length;
 
         JPanel mainPanel = new JPanel();

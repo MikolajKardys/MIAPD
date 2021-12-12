@@ -4,6 +4,8 @@ import management.CriterionTreeNode;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +37,14 @@ public class PCWindow extends JFrame {
         }
     }
 
-    public PCWindow(WindowObserver windowObserver, CriterionTreeNode node) {
+    public PCWindow(JFrame owner, WindowObserver windowObserver, CriterionTreeNode node) {
+        owner.setEnabled(false);
+        this.addWindowListener(new WindowAdapter(){
+            public void windowClosing(WindowEvent e){
+                owner.setEnabled(true);
+            }
+        });
+
         JPanel mainPanel = new JPanel();
 
         int labelNumber;

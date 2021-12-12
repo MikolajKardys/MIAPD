@@ -11,6 +11,7 @@ import org.json.simple.parser.ParseException;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static arithmetics.Inconsistency.consistencyIndexGoldenWang;
 import static arithmetics.Inconsistency.consistencyIndexSaatyHarker;
@@ -67,7 +68,7 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
     public void addCriteria(String criteriaName, String parent){
         CriterionTreeNode newCriteria = new CriterionTreeNode(getCriterion(parent), criteriaName);
 
-        put(newCriteria, new double[applesNumber()][applesNumber()]);
+        put(newCriteria, new double[0][0]);
 
         if (newCriteria.getParent() != null){
             expandMatrix(newCriteria.getParent());
@@ -114,6 +115,7 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
         return Solver.solveMultipleCriterion(this, PrioritizationMethod.EVM);
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public void writeToFile (String fileName) {
         StringBuilder appleString = new StringBuilder();
@@ -124,15 +126,26 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
         appleNames.put("appleNames", appleString.toString());
 
         JSONArray nodeTree = new JSONArray();
-        for (CriterionTreeNode criterion : keySet()){
-            JSONObject jsonCriterion = new JSONObject();
 
-            jsonCriterion.put("CriterionName", criterion.toString());
-            jsonCriterion.put("ParentName",
-                    (criterion.getParent() == null ? "" : criterion.getParent().toString())
-            );
+        int depth = 0;
+        int firstDepth = depth;
+        List<CriterionTreeNode> currNodes = keySet().stream().filter(e -> this.getDepth(e) == firstDepth)
+                .collect(Collectors.toList());
+        while (!currNodes.isEmpty()){
+            for (CriterionTreeNode criterion : currNodes){
+                JSONObject jsonCriterion = new JSONObject();
 
-            nodeTree.add(jsonCriterion);
+                jsonCriterion.put("CriterionName", criterion.toString());
+                jsonCriterion.put("ParentName",
+                        (criterion.getParent() == null ? "" : criterion.getParent().toString())
+                );
+
+                nodeTree.add(jsonCriterion);
+            }
+
+            int nextDepth = depth + 1;
+            currNodes = keySet().stream().filter(e -> this.getDepth(e) == nextDepth).collect(Collectors.toList());
+            depth++;
         }
 
         JSONArray arrays = new JSONArray();
@@ -224,8 +237,11 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
         int depth = 1;
         int finalDepth_0 = depth;
         List<CriterionTreeNode> currNodes = (new ArrayList<>(keySet())).stream()
-                .filter(e -> getDepth(e) == finalDepth_0).collect(Collectors.toList());;
+                .filter(e -> getDepth(e) == finalDepth_0).collect(Collectors.toList());
         while(!currNodes.isEmpty()){
+            //System.out.println(currNodes.toString());
+            //System.out.println(orderMap.toString());
+
             currNodes.sort((o1, o2) -> {
                 int o1Parent = orderMap.get(o1.getParent())[1];
                 int o2Parent = orderMap.get(o2.getParent())[1];
@@ -238,6 +254,7 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
 
                 return o1.toString().compareTo(o2.toString());
             });
+
             for (int i = 0; i < currNodes.size(); i++){
                 orderMap.put(currNodes.get(i), new int[]{depth, i});
             }
@@ -245,7 +262,7 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
             depth++;
             int finalDepth_1 = depth;
             currNodes = (new ArrayList<>(keySet())).stream()
-                    .filter(e -> getDepth(e) == finalDepth_1).collect(Collectors.toList());;
+                    .filter(e -> getDepth(e) == finalDepth_1).collect(Collectors.toList());
         }
 
         return orderMap;
