@@ -3,14 +3,37 @@ package GUI;
 import management.CriterionTreeNode;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 
 public class PCWindow extends JFrame {
 
     private final List<JTextField> textFields = new ArrayList<>();
+
+    private final List<JLabel> indexLabels = new ArrayList<>();
+
+    private void setIndexValues(WindowObserver windowObserver, CriterionTreeNode node){
+        Map<String, Double> indexes = windowObserver.getIncIndex(node);
+
+        if (indexes == null){
+            indexLabels.get(0).setText("<html><font color='red'>Can't calculate: Insufficient data</font></html>");
+            indexLabels.get(1).setText("");
+        }
+        else{
+            int index = 0;
+            for (Map.Entry<String, Double> entry : indexes.entrySet()){
+                String name = entry.getKey();
+                double value = entry.getValue();
+
+                indexLabels.get(index).setText(name + " value: " + (Math.round(value * 1000000.0) / 1000000.0));
+                index++;
+            }
+        }
+    }
 
     public PCWindow(WindowObserver windowObserver, CriterionTreeNode node) {
         JPanel mainPanel = new JPanel();
@@ -55,6 +78,22 @@ public class PCWindow extends JFrame {
             }
         }
 
+        JPanel incIndexes = new JPanel();
+        incIndexes.setBounds(750,325, 250, 100);
+        incIndexes.setLayout(new GridLayout(3, 0));
+        incIndexes.add(new JLabel("Inconsistency indices:"));
+
+        for (int i = 0; i < 2; i++){
+            JLabel label = new JLabel();
+            label.setHorizontalTextPosition(SwingConstants.CENTER);
+
+            indexLabels.add(label);
+            incIndexes.add(label);
+        }
+        setIndexValues(windowObserver, node);
+        mainPanel.add(incIndexes);
+
+
         JButton setComparisonsButton = new JButton("Set PC");
         setComparisonsButton.setBounds(25, 25, 75, 50);
         setComparisonsButton.addActionListener( e -> {
@@ -63,25 +102,46 @@ public class PCWindow extends JFrame {
                 i = k/labelNumber;
                 j = k%labelNumber;
 
-                if(i < j) {
-                    if(isValidDouble(k)) {
-                        windowObserver.setCAt(i, j, node.toString(), toDouble(textFields.get(k).getText()));
-                        windowObserver.setCAt(j, i, node.toString(), 1.0/toDouble(textFields.get(k).getText()));
-                    } else
-                        textFields.get(k).setText("");
-                }
-                else {
-                    textFields.get(k).setText(String.valueOf(Math.round(1000*windowObserver.getCAt(i,j,node.toString()))/1000.0));
+                if(i < j && !isValidDouble(k)) {
+                    JOptionPane.showMessageDialog(this, "All input values must be real numbers",
+                            "Input Error", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
             }
+
+            for(int k=0; k<textFields.size(); k++) {
+                i = k/labelNumber;
+                j = k%labelNumber;
+                if(i < j) {
+                    double value = toDouble(textFields.get(k).getText());
+                    if (value != 0) {
+                        windowObserver.setCAt(i, j, node.toString(), value);
+                        windowObserver.setCAt(j, i, node.toString(), 1.0 / value);
+                    }
+                    else {
+                        windowObserver.setCAt(i, j, node.toString(), 0);
+                        windowObserver.setCAt(j, i, node.toString(), 0);
+                    }
+                }
+            }
+
+            for(int k=0; k<textFields.size(); k++) {
+                i = k/labelNumber;
+                j = k%labelNumber;
+
+                textFields.get(k).setText(String.valueOf(Math.round(1000*windowObserver.getCAt(i,j,node.toString()))/1000.0));
+            }
+
+
+            setIndexValues(windowObserver, node);
         });
         mainPanel.add(setComparisonsButton);
 
-        mainPanel.setBounds(0,0, 750, 750);
+        mainPanel.setBounds(0,0, 1000, 750);
         mainPanel.setLayout(null);
 
         this.setTitle(node.toString());
-        this.setSize(750, 750);
+        this.setSize(1000, 750);
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setResizable(false);
         this.setLayout(null);
@@ -97,7 +157,7 @@ public class PCWindow extends JFrame {
             String text = textFields.get(textFieldIndex).getText();
 
             try {
-                return Double.parseDouble(text) > 0;
+                return Double.parseDouble(text) >= 0;
             } catch(NumberFormatException e) {
                 textFields.get(textFieldIndex).setText("");
                 return false;

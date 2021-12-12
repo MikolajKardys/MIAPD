@@ -4,7 +4,6 @@ import Jama.EigenvalueDecomposition;
 import Jama.Matrix;
 import management.CriterionTreeMap;
 import management.CriterionTreeNode;
-import org.javatuples.Pair;
 
 import java.util.Arrays;
 

@@ -18,7 +18,7 @@ public interface WindowObserver {
     double getCAt(int i, int j, String criterionName);
 
     //return true if every cell in C table is set (every cell > 0)
-    boolean isPCTablesCorrect();
+    boolean arePCTablesCorrect();
 
     //return table (with size of apples number) which is ranking w of PC table
     double [] getRanking();
@@ -26,4 +26,7 @@ public interface WindowObserver {
     CriterionTreeNode getRoot();
 
     Map<CriterionTreeNode, int[]> getNodeOrder();
+
+    Map<String, Double> getIncIndex(CriterionTreeNode node);
+
 }

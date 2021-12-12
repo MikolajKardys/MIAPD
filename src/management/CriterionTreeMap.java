@@ -12,6 +12,9 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static arithmetics.Inconsistency.consistencyIndexGoldenWang;
+import static arithmetics.Inconsistency.consistencyIndexSaatyHarker;
+
 public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> implements WindowObserver {
     private final List<String> apples = new ArrayList<>();
 
@@ -102,7 +105,7 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
     }
 
     @Override
-    public boolean isPCTablesCorrect() {
+    public boolean arePCTablesCorrect() {
         return true;
     }
 
@@ -246,5 +249,19 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
         }
 
         return orderMap;
+    }
+
+    @Override
+    public Map<String, Double> getIncIndex(CriterionTreeNode node) {
+        Map<String,Double> indexMap = new HashMap<>();
+
+        try {
+            indexMap.put("Golden - Wang index", consistencyIndexGoldenWang(this, node));
+            indexMap.put("Saaty - Harker index", consistencyIndexSaatyHarker(this, node));
+        }
+        catch (IllegalArgumentException e){
+            return null;
+        }
+        return  indexMap;
     }
 }

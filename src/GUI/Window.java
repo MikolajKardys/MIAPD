@@ -1,5 +1,6 @@
 package GUI;
 
+import management.CriterionTreeMap;
 import management.CriterionTreeNode;
 
 import javax.swing.*;
@@ -28,7 +29,7 @@ public class Window extends JFrame {
         addCriterionButtons(windowObserver.getRoot());
 
         JButton getRankingButton = new JButton("Get ranking");
-        getRankingButton.setBounds(50, 650, 875, 25);
+        getRankingButton.setBounds(100, 600, 825, 25);
         getRankingButton.addActionListener(e -> {
             if(true) {
                 new RankingWindow(windowObserver, windowObserver.getRanking());
@@ -36,6 +37,14 @@ public class Window extends JFrame {
 
             /*if(windowObserver.isPCTablesCorrect())
                 new RankingWindow(windowObserver, windowObserver.getRanking());*/
+        });
+
+        JButton loadFile = new JButton("Load file");
+        loadFile.setBounds(100, 650, 400, 25);
+        loadFile.addActionListener(e -> {
+            CriterionTreeMap newMap = CriterionTreeMap.readFromFile("example.json");
+            new Window(newMap);
+            this.dispose();
         });
 
         mainPanel.setBounds(0,0, 1000, 750);
