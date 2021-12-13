@@ -1,10 +1,12 @@
 package GUI;
 
-import management.CriterionTreeMap;
+import arithmetics.PrioritizationMethod;
 import management.CriterionTreeNode;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.Line2D;
 import java.io.File;
 import java.util.ArrayList;
@@ -12,16 +14,47 @@ import java.util.List;
 import java.util.Map;
 
 public class Window extends JFrame {
+    private class MyJPanel extends JPanel{
+        public MyJPanel(){
+            super();
+        }
+
+        private void paintRec(Graphics2D g2, CriterionTreeNode node){
+            int [] index_1 = orderMap.get(node);
+            for (int i = 0; i < node.getChildCount(); i++){
+                int [] index_2 = orderMap.get(node.getChildAt(i));
+                Line2D lin = new Line2D.Double(
+                        150 + 225*index_1[1], 200 + 75*index_1[0],
+                        150 + 225*index_2[1], 200 + 75*index_2[0]
+                );
+                g2.draw(lin);
+                paintRec(g2, node.getChildAt(i));
+            }
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            paintRec((Graphics2D) g, windowObserver.getRoot());
+        }
+    }
+
     private WindowObserver windowObserver;
 
-    private final JPanel mainPanel = new JPanel();
+    private final JPanel mainPanel = new MyJPanel();
 
     private final List<JLabel> appleNameLabels = new ArrayList<>();
     private final List<JButton> criterionListButtons = new ArrayList<>();
 
     private final Map<CriterionTreeNode, int[]> orderMap;
 
-    public Window(WindowObserver windowObserver) {
+    public Window(JFrame owner, WindowObserver windowObserver) {
+        this.addWindowListener(new WindowAdapter(){
+            public void windowClosing(WindowEvent e){
+                owner.setEnabled(true);
+            }
+        });
+
         this.windowObserver = windowObserver;
 
         orderMap = windowObserver.getNodeOrder();
@@ -30,32 +63,28 @@ public class Window extends JFrame {
         addCriterionButtons(windowObserver.getRoot());
 
         JButton getRankingButton = new JButton("Get ranking");
-        getRankingButton.setBounds(100, 600, 800, 25);
+        getRankingButton.setBounds(600, 600, 250, 50);
         getRankingButton.addActionListener(e -> {
-            if(true) {
-                new RankingWindow(this, windowObserver, windowObserver.getRanking());
-            }
+            PrioritizationMethod [] choices = { PrioritizationMethod.EVM, PrioritizationMethod.GMM };
+            PrioritizationMethod method = (PrioritizationMethod) JOptionPane.showInputDialog(this,
+                    "Select a method to calculate the ranking...",
+                    "Choose a method", JOptionPane.QUESTION_MESSAGE, null,
+                    choices, choices[0]);
 
-            /*if(windowObserver.isPCTablesCorrect())
-                new RankingWindow(windowObserver, windowObserver.getRanking());*/
+
+            if (method != null)
+                try{
+                    if (windowObserver.arePCTablesCorrect())
+                        new RankingWindow(this, windowObserver, windowObserver.getRanking(method));
+                }
+                catch (IllegalArgumentException ex){
+                    JOptionPane.showMessageDialog(this, ex.getMessage(),
+                            "Input Error", JOptionPane.ERROR_MESSAGE);
+                }
         });
 
-        JButton loadFileButton = new JButton("Load file");
-        loadFileButton.setBounds(100, 650, 375, 25);
-        loadFileButton.addActionListener(e -> {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
-            int result = fileChooser.showOpenDialog(this);
-            if (result == JFileChooser.APPROVE_OPTION) {
-                File selectedFile = fileChooser.getSelectedFile();
-                CriterionTreeMap newMap = CriterionTreeMap.readFromFile(selectedFile.getAbsolutePath());
-                new Window(newMap);
-                this.dispose();
-            }
-        });
-
-        JButton saveFileButton = new JButton("Save file");
-        saveFileButton.setBounds(525, 650, 375, 25);
+        JButton saveFileButton = new JButton("Save file as...");
+        saveFileButton.setBounds(150, 600, 250, 50);
         saveFileButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
@@ -64,7 +93,6 @@ public class Window extends JFrame {
 
             if (userSelection == JFileChooser.APPROVE_OPTION) {
                 File fileToSave = fileChooser.getSelectedFile();
-                System.out.println("Save as file: " + fileToSave.getAbsolutePath());
 
                 windowObserver.writeToFile(fileToSave.getAbsolutePath());
             }
@@ -73,12 +101,10 @@ public class Window extends JFrame {
         mainPanel.setBounds(0,0, 1000, 750);
         mainPanel.setLayout(null);
         mainPanel.add(getRankingButton);
-        mainPanel.add(loadFileButton);
         mainPanel.add(saveFileButton);
 
         this.setTitle("Apple rank");
         this.setSize(1000, 750);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
         this.setLayout(null);
         this.add(mainPanel);
@@ -104,9 +130,7 @@ public class Window extends JFrame {
         criterionButton.setBounds(50 + 225*index[1], 175 + 75*index[0], 200, 50);
 
         criterionButton.setFont(new Font("Serif", Font.PLAIN, 16));
-        criterionButton.addActionListener( e -> {
-            new PCWindow(this, windowObserver, node);
-        });
+        criterionButton.addActionListener( e -> new PCWindow(this, windowObserver, node));
         criterionListButtons.add(criterionButton);
         mainPanel.add(criterionButton);
 
@@ -114,6 +138,7 @@ public class Window extends JFrame {
             for(int i=0; i<node.getChildCount(); i++)
                 addCriterionButtons(node.getChildAt(i));
     }
+
 
     public void setWindowObserver(WindowObserver windowObserver) {
         this.windowObserver = windowObserver;
@@ -123,22 +148,4 @@ public class Window extends JFrame {
         this.windowObserver = null;
     }
 
-
-    private void paintRec(Graphics2D g2, CriterionTreeNode node){
-        int [] index_1 = orderMap.get(node);
-        for (int i = 0; i < node.getChildCount(); i++){
-            int [] index_2 = orderMap.get(node.getChildAt(i));
-            Line2D lin = new Line2D.Double(
-                    150 + 225*index_1[1], 225 + 75*index_1[0],
-                    150 + 225*index_2[1], 225 + 75*index_2[0]
-            );
-            g2.draw(lin);
-            paintRec(g2, node.getChildAt(i));
-        }
-    }
-
-    public void paint(Graphics g) {
-        super.paint(g);
-        paintRec((Graphics2D) g, windowObserver.getRoot());
-    }
 }

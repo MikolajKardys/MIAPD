@@ -36,7 +36,12 @@ public class Solver {
             rankingVectors.add(calculateRankingVector(map, node.getChildAt(i), method));
 
         double [] currentNodeRanking;
-        double [][] C = map.get(node);
+
+        int CSize = map.get(node).length;
+        double [][] C = new double[CSize][CSize];
+        for (int i = 0; i < CSize; i++)
+            C[i] = Arrays.copyOf(map.get(node)[i], CSize);
+
         if(method == PrioritizationMethod.EVM) {
             if(graphCoherence.isConnected(C))
                 currentNodeRanking = solveForIncompleteEVM(C);

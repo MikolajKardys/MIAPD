@@ -3,6 +3,7 @@ package management;
 import GUI.WindowObserver;
 import arithmetics.PrioritizationMethod;
 import arithmetics.Solver;
+import arithmetics.graphCoherence;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -11,7 +12,6 @@ import org.json.simple.parser.ParseException;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static arithmetics.Inconsistency.consistencyIndexGoldenWang;
 import static arithmetics.Inconsistency.consistencyIndexSaatyHarker;
@@ -105,14 +105,25 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
         return node;
     }
 
-    @Override
-    public boolean arePCTablesCorrect() {
+    private boolean arePCTablesCorrectRec(CriterionTreeNode node) throws IllegalArgumentException{
+        if (!graphCoherence.isConnected(this.get(node))){
+            throw new IllegalArgumentException("Insufficient data in table \"" + node.toString() +"\"");
+        }
+
+        for (int i = 0; i < node.getChildCount(); i++){
+            arePCTablesCorrectRec(node.getChildAt(i));
+        }
         return true;
     }
 
     @Override
-    public double[] getRanking() {
-        return Solver.solveMultipleCriterion(this, PrioritizationMethod.EVM);
+    public boolean arePCTablesCorrect() throws IllegalArgumentException{
+        return arePCTablesCorrectRec(getRoot());
+    }
+
+    @Override
+    public double[] getRanking(PrioritizationMethod method) {
+        return Solver.solveMultipleCriterion(this, method);
     }
 
     @Override
@@ -239,9 +250,6 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
         List<CriterionTreeNode> currNodes = (new ArrayList<>(keySet())).stream()
                 .filter(e -> getDepth(e) == finalDepth_0).collect(Collectors.toList());
         while(!currNodes.isEmpty()){
-            //System.out.println(currNodes.toString());
-            //System.out.println(orderMap.toString());
-
             currNodes.sort((o1, o2) -> {
                 int o1Parent = orderMap.get(o1.getParent())[1];
                 int o2Parent = orderMap.get(o2.getParent())[1];

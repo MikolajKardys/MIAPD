@@ -1,5 +1,6 @@
 package GUI;
 
+import arithmetics.PrioritizationMethod;
 import management.CriterionTreeNode;
 
 import java.util.Map;
@@ -21,7 +22,7 @@ public interface WindowObserver {
     boolean arePCTablesCorrect();
 
     //return table (with size of apples number) which is ranking w of PC table
-    double [] getRanking();
+    double [] getRanking(PrioritizationMethod method);
 
     CriterionTreeNode getRoot();
 
@@ -29,5 +30,5 @@ public interface WindowObserver {
 
     Map<String, Double> getIncIndex(CriterionTreeNode node);
 
-    void writeToFile(String fileName);
+    void writeToFile(String fileName) throws IllegalArgumentException;
 }
