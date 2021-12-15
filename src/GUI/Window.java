@@ -4,6 +4,7 @@ import arithmetics.PrioritizationMethod;
 import management.CriterionTreeNode;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -87,14 +88,19 @@ public class Window extends JFrame {
         saveFileButton.setBounds(150, 600, 250, 50);
         saveFileButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(new FileNameExtensionFilter("*.json", "json"));
+            fileChooser.setAcceptAllFileFilterUsed(false);
             fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
 
             int userSelection = fileChooser.showSaveDialog(this);
 
             if (userSelection == JFileChooser.APPROVE_OPTION) {
-                File fileToSave = fileChooser.getSelectedFile();
+                String fileName = fileChooser.getSelectedFile().getAbsolutePath();
 
-                windowObserver.writeToFile(fileToSave.getAbsolutePath());
+                if (!fileName.endsWith(".json"))
+                    fileName += ".json";
+
+                windowObserver.writeToFile(fileName);
             }
         });
 
