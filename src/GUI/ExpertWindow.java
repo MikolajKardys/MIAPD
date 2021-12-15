@@ -48,6 +48,14 @@ public class ExpertWindow extends JFrame {
     }
 
     private void calculateRanking(PrioritizationMethod method) throws Exception{
+        String [] choices = { "Arithmetic mean", "Geometric mean" };
+        String meanType = (String) JOptionPane.showInputDialog(this,
+                "Select a priority aggregation method...",
+                "Choose a method", JOptionPane.QUESTION_MESSAGE, null,
+                choices, choices[0]);
+        if (meanType == null)
+            return;
+
         if (expertMap.isEmpty()){
             throw new Exception("You must provide data from at least one expert");
         }
@@ -55,9 +63,9 @@ public class ExpertWindow extends JFrame {
 
         int appleNum = firstMap.applesNumber();
 
-        Map<String, Double> resultsMap = new HashMap<>();
+        Map<String, List<Double>> resultsMap = new HashMap<>();
         for (int i = 0; i < appleNum; i++){
-            resultsMap.put(firstMap.getIthAppleName(i), 0.0);
+            resultsMap.put(firstMap.getIthAppleName(i), new ArrayList<>());
         }
 
         Set<String> appleNames = resultsMap.keySet();
@@ -83,8 +91,7 @@ public class ExpertWindow extends JFrame {
                     double [] currResult = currExpert.getRanking(method);
 
                     for (int i = 0; i < appleNum; i++){
-                        double oldValue = resultsMap.get(currExpert.getIthAppleName(i));
-                        resultsMap.put(currExpert.getIthAppleName(i), oldValue + currResult[i]);
+                        resultsMap.get(currExpert.getIthAppleName(i)).add(currResult[i]);
                     }
                 }
             }
@@ -93,12 +100,24 @@ public class ExpertWindow extends JFrame {
             }
         }
 
+        Map<String, Double> resultMapDouble = new HashMap<>();
+
         for (String appleName : resultsMap.keySet()){
-            double oldValue = resultsMap.get(appleName);
-            resultsMap.put(appleName, oldValue / expertMap.size());
+            double[] values = resultsMap.get(appleName).stream().mapToDouble(Double::valueOf).toArray();
+
+            if (meanType.equals("Arithmetic mean"))
+                resultMapDouble.put(appleName, Arrays.stream(values).sum() / expertMap.size());
+            else {
+                double prod = 1;
+                for (double num : values)
+                    prod *= num;
+
+                resultMapDouble.put(appleName, Math.pow(prod, 1.0 / values.length));
+            }
+
         }
 
-        new RankingWindow(this, resultsMap);
+        new RankingWindow(this, resultMapDouble);
     }
 
     public ExpertWindow(){

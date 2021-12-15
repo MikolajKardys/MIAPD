@@ -74,11 +74,8 @@ public class PCWindow extends JFrame {
 
         for(int i=0; i<labelNumber; i++) {
             for(int j=0; j<labelNumber; j++) {
-                JTextField textField;
-                if(i<j)
-                    textField = new JTextField(String.valueOf(Math.round(1000*windowObserver.getCAt(i,j,node.toString()))/1000.0));
-                else
-                    textField = new JTextField(String.valueOf(Math.round(1000*(1.0/windowObserver.getCAt(j,i,node.toString())))/1000.0));
+                JTextField textField = new JTextField(String.valueOf(Math.round(1000*windowObserver.getCAt(i,j,node.toString()))/1000.0));
+
                 textField.setBounds(125 + j*(600/labelNumber), 100 + i*(600/labelNumber), (600/labelNumber)-25, (600/labelNumber)-25);
                 textFields.add(textField);
                 if(i>=j)
