@@ -30,56 +30,6 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double[][]> imp
         return map;
     }
 
-    public static CriterionTreeMap readFromFile(String fileName) {
-        CriterionTreeMap newMap = new CriterionTreeMap();
-
-        JSONParser jsonParser = new JSONParser();
-
-        try (FileReader reader = new FileReader(fileName)) {
-            JSONArray list = (JSONArray) jsonParser.parse(reader);
-
-            // CriterionNodes
-            JSONArray nodes = (JSONArray) list.get(0);
-            for (Object node : nodes) {
-                newMap.addCriteria(
-                        (String) ((JSONObject) node).get("CriterionName"),
-                        (String) ((JSONObject) node).get("ParentName")
-                );
-            }
-
-            // Apples
-            JSONObject apples = (JSONObject) list.get(1);
-            String[] appleNames = apples.get("appleNames").toString().split(";");
-            for (String name : appleNames)
-                newMap.addApple(name);
-
-            // CriterionArrays
-            JSONArray arrays = (JSONArray) list.get(2);
-            for (Object array : arrays) {
-                CriterionTreeNode node =
-                        newMap.getCriterion((String) ((JSONObject) array).get("CriterionName"));
-
-                String str = ((String) ((JSONObject) array).get("Array")).
-                        replace("]", "").replace("[", "").replace(",", "");
-
-                List<String> numbers = List.of(str.split(" "));
-                int size = (int) (Math.sqrt(numbers.size()));
-
-                double[][] intArray = new double[size][size];
-                for (int i = 0; i < size; i++)
-                    for (int j = 0; j < size; j++)
-                        intArray[i][j] = Double.parseDouble(numbers.get(size * i + j));
-
-                newMap.put(node, intArray);
-            }
-
-        } catch (IOException | ParseException e) {
-            e.printStackTrace();
-        }
-
-        return newMap;
-    }
-
     private List<CriterionTreeNode> getLeavesRec(CriterionTreeNode node) {
         List<CriterionTreeNode> list = new ArrayList<>();
         if (node.isLeaf()) {
@@ -322,7 +272,27 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double[][]> imp
             JSONObject jsonCriterion = new JSONObject();
 
             jsonCriterion.put("CriterionName", criterion.toString());
-            jsonCriterion.put("Array", Arrays.deepToString(get(criterion)));
+
+            JSONObject matrixMap = new JSONObject();
+            if (criterion.isLeaf()) {
+                for (int i = 0; i < applesNumber(); i++){
+                    JSONObject currApple = new JSONObject();
+                    for (int j = 0; j < applesNumber(); j++){
+                        currApple.put(getIthAppleName(j), getCAt(i, j, criterion.toString()));
+                    }
+                    matrixMap.put(getIthAppleName(i), currApple);
+                }
+            }
+            else {
+                for (int i = 0; i < criterion.getChildCount(); i++){
+                    JSONObject currCriterion = new JSONObject();
+                    for (int j = 0; j < criterion.getChildCount(); j++){
+                        currCriterion.put(criterion.getChildAt(j), getCAt(i, j, criterion.toString()));
+                    }
+                    matrixMap.put(criterion.getChildAt(i), currCriterion);
+                }
+            }
+            jsonCriterion.put("Array", matrixMap);
 
             arrays.add(jsonCriterion);
         }
@@ -341,6 +311,89 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double[][]> imp
             e.printStackTrace();
         }
     }
+
+    public static CriterionTreeMap readFromFile(String fileName) {
+        CriterionTreeMap newMap = new CriterionTreeMap();
+
+        JSONParser jsonParser = new JSONParser();
+
+        try (FileReader reader = new FileReader(fileName)) {
+            JSONArray list = (JSONArray) jsonParser.parse(reader);
+
+            // CriterionNodes
+            JSONArray nodes = (JSONArray) list.get(0);
+            for (Object node : nodes) {
+                newMap.addCriteria(
+                        (String) ((JSONObject) node).get("CriterionName"),
+                        (String) ((JSONObject) node).get("ParentName")
+                );
+            }
+
+            // Apples
+            JSONObject apples = (JSONObject) list.get(1);
+            String[] appleNames = apples.get("appleNames").toString().split(";");
+            for (String name : appleNames)
+                newMap.addApple(name);
+
+            // CriterionArrays
+            JSONArray arrays = (JSONArray) list.get(2);
+            for (Object array : arrays) {
+                CriterionTreeNode node =
+                        newMap.getCriterion((String) ((JSONObject) array).get("CriterionName"));
+
+                double [][] doubleArray;
+                if (node.isLeaf()){
+                    doubleArray = new double[newMap.applesNumber()][newMap.applesNumber()];
+                }
+                else {
+                    doubleArray = new double[node.getChildCount()][node.getChildCount()];
+                }
+                newMap.put(node, doubleArray);
+
+                JSONObject arrayObj = (JSONObject) ((JSONObject) array).get("Array");
+
+                for (Object arrayKey : arrayObj.keySet()){
+                    JSONObject currArray = ((JSONObject) arrayObj.get(arrayKey));
+
+                    String firstName = (String) arrayKey;
+
+                    for (Object otherObject : currArray.keySet()){
+                        String otherName = (String) otherObject;
+
+                        double value = (double) currArray.get(otherName);
+
+                        if (node.isLeaf()){
+                            newMap.setCAt(newMap.apples.indexOf(firstName), newMap.apples.indexOf(otherName),
+                                    node.toString(), value);
+                        }
+                        else{
+                            newMap.setCAt(node.getChildInd(newMap.getCriterion(firstName)),
+                                    node.getChildInd(newMap.getCriterion(otherName)),
+                                    node.toString(), value);
+                        }
+                    }
+                }
+
+                        /*
+                String str = ((String) ((JSONObject) array).get("Array")).
+                        replace("]", "").replace("[", "").replace(",", "");
+
+                List<String> numbers = List.of(str.split(" "));
+                int size = (int) (Math.sqrt(numbers.size()));
+
+                double[][] intArray = new double[size][size];
+                for (int i = 0; i < size; i++)
+                    for (int j = 0; j < size; j++)
+                        intArray[i][j] = Double.parseDouble(numbers.get(size * i + j));*/
+            }
+
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+        }
+
+        return newMap;
+    }
+
 
     private int getDepth(CriterionTreeNode criterion) {
         if (criterion.getParent() != null) {
