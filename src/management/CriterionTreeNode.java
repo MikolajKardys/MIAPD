@@ -44,6 +44,13 @@ public class CriterionTreeNode {
         return children.get(childIndex);
     }
 
+    public int getChildInd(CriterionTreeNode child){
+        if (!children.contains(child)){
+            return -1;
+        }
+        return children.indexOf(child);
+    }
+
     public int getChildCount() {
         return children.size();
     }
@@ -58,8 +65,7 @@ public class CriterionTreeNode {
 
     public void delete(){
         if (parent != null){
-
-            System.out.println(toString() + " " + parent.children.remove(this));
+            parent.children.remove(this);
         }
     }
 }

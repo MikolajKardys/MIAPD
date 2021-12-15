@@ -1,7 +1,6 @@
 package GUI;
 
 import arithmetics.PrioritizationMethod;
-import management.CriterionTreeMap;
 import management.CriterionTreeNode;
 
 import javax.swing.*;
@@ -9,13 +8,11 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.geom.Line2D;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class Window extends JFrame {
     private class MyJPanel extends JPanel{
@@ -23,17 +20,20 @@ public class Window extends JFrame {
             super();
         }
 
-        private void paintRec(Graphics2D g2, CriterionTreeNode node, Map<CriterionTreeNode, int[]> orderMap){
-            int [] index_1 = orderMap.get(node);
+        private void paintRec(Graphics2D g2, CriterionTreeNode node){
+            int [] index_1 = {criterionButtonsMap.get(node).getX(), criterionButtonsMap.get(node).getY()};
+            int width = criterionButtonsMap.get(node).getWidth();
+            int height = criterionButtonsMap.get(node).getHeight();
 
             for (int i = 0; i < node.getChildCount(); i++){
-                int [] index_2 = orderMap.get(node.getChildAt(i));
-                Line2D lin = new Line2D.Double(
-                        150 + 225*index_1[1], 200 + 75*index_1[0],
-                        150 + 225*index_2[1], 200 + 75*index_2[0]
-                );
-                g2.draw(lin);
-                paintRec(g2, node.getChildAt(i), orderMap);
+                CriterionTreeNode child = node.getChildAt(i);
+                int [] index_2 = {criterionButtonsMap.get(child).getX(), criterionButtonsMap.get(child).getY()};
+                int childWidth = criterionButtonsMap.get(child).getWidth();
+                int childHeight = criterionButtonsMap.get(child).getHeight();
+
+                g2.drawLine(index_1[0] + width / 2, index_1[1] + height / 2,
+                        index_2[0] + childWidth / 2, index_2[1] + childHeight / 2);
+                paintRec(g2, node.getChildAt(i));
             }
         }
 
@@ -41,22 +41,21 @@ public class Window extends JFrame {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
 
-            Map<CriterionTreeNode, int[]> orderMap = windowObserver.getNodeOrder();
-
-            paintRec((Graphics2D) g, windowObserver.getRoot(), orderMap);
+            paintRec((Graphics2D) g, windowObserver.getRoot());
         }
     }
 
     private final WindowObserver windowObserver;
 
-    private final JPanel mainPanel = new MyJPanel();
+    private final JPanel buttonPanel = new MyJPanel();
+    private final JPanel labelPanel = new JPanel();
 
-    private final List<JLabel> appleNameLabels = new ArrayList<>();
-    private final List<JButton> criterionListButtons = new ArrayList<>();
-
-    //private final Map<CriterionTreeNode, int[]> orderMap;
+    private final List<String> appleNameLabels = new ArrayList<>();
+    private final Map<CriterionTreeNode, JButton> criterionButtonsMap = new HashMap<>();
 
     public Window(JFrame owner, WindowObserver windowObserver) {
+        JPanel mainPanel = new JPanel();
+
         this.addWindowListener(new WindowAdapter(){
             public void windowClosing(WindowEvent e){
                 owner.setEnabled(true);
@@ -65,11 +64,30 @@ public class Window extends JFrame {
 
         this.windowObserver = windowObserver;
 
+        JLabel titleLabels = new JLabel("Choice names:");
+        titleLabels.setBounds(0, 10, 1000, 30);
+        titleLabels.setHorizontalAlignment(SwingConstants.CENTER);
+        titleLabels.setFont(new Font("Serif", Font.PLAIN, 20));
+        mainPanel.add(titleLabels);
+        labelPanel.setLayout(new GridBagLayout());
+        JScrollPane labelScrollPane = new JScrollPane(labelPanel);
+        labelScrollPane.setBounds(50, 50, 900, 100);
         addAlternativeLabels();
+
+
+        JLabel titleButtons = new JLabel("Criteria tree:");
+        titleButtons.setBounds(0, 180, 1000, 30);
+        titleButtons.setHorizontalAlignment(SwingConstants.CENTER);
+        titleButtons.setFont(new Font("Serif", Font.PLAIN, 20));
+        mainPanel.add(titleButtons);
+        buttonPanel.setLayout(new GridBagLayout());
+        JScrollPane buttonScrollPane = new JScrollPane(buttonPanel);
+        buttonScrollPane.setBounds(50, 220, 900, 375);
         addCriterionButtons(windowObserver, windowObserver.getRoot());
 
+
         JButton getRankingButton = new JButton("Get ranking");
-        getRankingButton.setBounds(600, 600, 250, 50);
+        getRankingButton.setBounds(600, 620, 250, 50);
         getRankingButton.addActionListener(e -> {
             PrioritizationMethod [] choices = { PrioritizationMethod.EVM, PrioritizationMethod.GMM };
             PrioritizationMethod method = (PrioritizationMethod) JOptionPane.showInputDialog(this,
@@ -90,7 +108,7 @@ public class Window extends JFrame {
         });
 
         JButton saveFileButton = new JButton("Save file as...");
-        saveFileButton.setBounds(150, 600, 250, 50);
+        saveFileButton.setBounds(150, 620, 250, 50);
         saveFileButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setFileFilter(new FileNameExtensionFilter("*.json", "json"));
@@ -114,6 +132,9 @@ public class Window extends JFrame {
         mainPanel.add(getRankingButton);
         mainPanel.add(saveFileButton);
 
+        mainPanel.add(labelScrollPane);
+        mainPanel.add(buttonScrollPane);
+
         this.setTitle("Apple rank");
         this.setSize(1000, 750);
         this.setResizable(false);
@@ -123,13 +144,96 @@ public class Window extends JFrame {
     }
 
     private void addAlternativeLabels() {
+        GridBagConstraints c = new GridBagConstraints();
+        c.insets = new Insets(1,5,2,5);
+        c.anchor = GridBagConstraints.FIRST_LINE_START;
         for(int i=0; i<windowObserver.applesNumber(); i++) {
-            JLabel appleLabel = new JLabel(windowObserver.getIthAppleName(i), SwingConstants.CENTER);
-            appleLabel.setBounds(50 + 225*(i%4), 25 + 50*(i/4), 200, 25);
+            c.gridx = i % 4;
+            c.gridy = i / 4;
+
+            String appleName = windowObserver.getIthAppleName(i);
+            JLabel appleLabel = new JLabel(appleName, SwingConstants.CENTER);
+            appleLabel.setPreferredSize(new Dimension(200, 40));
             appleLabel.setFont(new Font("Serif", Font.PLAIN, 16));
-            appleNameLabels.add(appleLabel);
-            mainPanel.add(appleLabel);
+            appleLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 3));
+            appleLabel.setVerticalAlignment(SwingConstants.CENTER);
+
+            JPopupMenu menu = new JPopupMenu();
+            JMenuItem remove = new JMenuItem("Remove choice");
+            remove.addActionListener(e -> {
+                try {
+                    windowObserver.removeApple(appleName);
+
+                    labelPanel.removeAll();
+
+                    addAlternativeLabels();
+
+                    this.repaint();
+                    this.revalidate();
+
+                } catch (IllegalArgumentException ex){
+                    JOptionPane.showMessageDialog(this, ex.getMessage(),
+                            "Can't delete this choice", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+            menu.add(remove);
+            JMenuItem rename = new JMenuItem("Rename this choice to...");
+            rename.addActionListener(e -> {
+                String newName = JOptionPane.showInputDialog(this, "Rename this choice to...",
+                        "Rename choice", JOptionPane.QUESTION_MESSAGE);
+                if(newName != null && !newName.isEmpty()){
+                    try {
+                        windowObserver.renameApple(appleName, newName);
+
+                        labelPanel.removeAll();
+
+                        addAlternativeLabels();
+
+                        this.repaint();
+                        this.revalidate();
+
+                    } catch (IllegalArgumentException ex){
+                        JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(),
+                                "Can't rename this choice", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            });
+            menu.add(rename);
+
+            appleLabel.setComponentPopupMenu(menu);
+
+            appleNameLabels.add(appleName);
+
+            labelPanel.add(appleLabel, c);
         }
+        c.gridx = windowObserver.applesNumber() % 4;
+        c.gridy = windowObserver.applesNumber() / 4;
+        c.insets = new Insets(3,10,4,10);
+
+        JButton addLabel = new JButton("Add new choice...");
+        addLabel.setPreferredSize(new Dimension(190, 36));
+        addLabel.setFont(new Font("Serif", Font.PLAIN, 16));
+        addLabel.addActionListener(e -> {
+            String newName = JOptionPane.showInputDialog(this, "Create a name for the new choice...",
+                    "New choice", JOptionPane.QUESTION_MESSAGE);
+            if(newName != null && !newName.isEmpty()){
+                if (appleNameLabels.contains(newName))
+                    JOptionPane.showMessageDialog(this, "A choice with this name " +
+                                    "already exists.",
+                            "Unable to create a new choice", JOptionPane.ERROR_MESSAGE);
+                else{
+                    windowObserver.addApple(newName);
+
+                    labelPanel.removeAll();
+
+                    addAlternativeLabels();
+
+                    this.repaint();
+                    this.revalidate();
+                }
+            }
+        });
+        labelPanel.add(addLabel, c);
     }
 
     private void addCriterionButtons(WindowObserver windowObserver, CriterionTreeNode node) {
@@ -137,20 +241,25 @@ public class Window extends JFrame {
 
         String criterionName = node.toString();
 
-        JButton criterionButton = new JButton(criterionName);
-
         int [] index = orderMap.get(node);
-        criterionButton.setBounds(50 + 225*index[1], 175 + 75*index[0], 200, 50);
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = index[1];
+        c.gridy = index[0];
+        c.insets = new Insets(15,15,15,15);
+        c.anchor = GridBagConstraints.FIRST_LINE_START;
+
+        JButton criterionButton = new JButton(criterionName);
+        criterionButton.setPreferredSize(new Dimension(200, 50));
 
         criterionButton.setFont(new Font("Serif", Font.PLAIN, 16));
         criterionButton.addActionListener( e -> new PCWindow(this, windowObserver, node));
-        criterionListButtons.add(criterionButton);
-        mainPanel.add(criterionButton);
+        criterionButtonsMap.put(node, criterionButton);
+        buttonPanel.add(criterionButton, c);
 
         JPopupMenu menu = new JPopupMenu();
         JMenuItem addNew = new JMenuItem("Add new sub criteria");
         addNew.addActionListener(e -> {
-            String newName = JOptionPane.showInputDialog(null, "Create a name for the new criteria...",
+            String newName = JOptionPane.showInputDialog(this, "Create a name for the new criteria...",
                     "New criteria", JOptionPane.QUESTION_MESSAGE);
             if(newName != null && !newName.isEmpty()){
                 if (windowObserver.getCriterion(newName) != null)
@@ -160,8 +269,8 @@ public class Window extends JFrame {
                 else{
                     windowObserver.addCriteria(newName, criterionName);
 
-                    for (JButton button : criterionListButtons)
-                        mainPanel.remove(button);
+                    for (JButton button : criterionButtonsMap.values())
+                        buttonPanel.remove(button);
 
                     addCriterionButtons(windowObserver, windowObserver.getRoot());
 
@@ -171,14 +280,13 @@ public class Window extends JFrame {
             }
         });
         menu.add(addNew);
-
         JMenuItem remove = new JMenuItem("Remove criteria");
         remove.addActionListener(e -> {
             try {
                 windowObserver.removeCriteria(criterionName);
 
-                for (JButton button : criterionListButtons)
-                    mainPanel.remove(button);
+                for (JButton button : criterionButtonsMap.values())
+                    buttonPanel.remove(button);
 
                 addCriterionButtons(windowObserver, windowObserver.getRoot());
 
@@ -191,17 +299,16 @@ public class Window extends JFrame {
             }
         });
         menu.add(remove);
-
         JMenuItem rename = new JMenuItem("Rename this criteria to...");
         rename.addActionListener(e -> {
-            String newName = JOptionPane.showInputDialog(null, "Rename this criteria to...",
+            String newName = JOptionPane.showInputDialog(this, "Rename this criteria to...",
                     "Rename criteria", JOptionPane.QUESTION_MESSAGE);
             if(newName != null && !newName.isEmpty()){
                 try {
                     windowObserver.renameCriteria(criterionName, newName);
 
-                    for (JButton button : criterionListButtons)
-                        mainPanel.remove(button);
+                    for (JButton button : criterionButtonsMap.values())
+                        buttonPanel.remove(button);
 
                     addCriterionButtons(windowObserver, windowObserver.getRoot());
 
@@ -215,7 +322,6 @@ public class Window extends JFrame {
             }
         });
         menu.add(rename);
-
         criterionButton.setComponentPopupMenu(menu);
 
         if(node.getChildCount() > 0)

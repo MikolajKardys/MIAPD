@@ -190,8 +190,8 @@ public class ExpertWindow extends JFrame {
         mainPanel.add(scrollPane);
 
 
-        JButton loadFileButton = new JButton("Add an expert...");
-        loadFileButton.setBounds(50, 375, 370, 25);
+        JButton loadFileButton = new JButton("Load an expert...");
+        loadFileButton.setBounds(50, 360, 180, 35);
         loadFileButton.addActionListener(e -> {
             try{
                 JFileChooser fileChooser = new JFileChooser();
@@ -224,6 +224,14 @@ public class ExpertWindow extends JFrame {
             updateExperts();
         });
         mainPanel.add(loadFileButton);
+
+        JButton newExpert = new JButton("Create a new expert...");
+        newExpert.setBounds(240, 360, 180, 35);
+        newExpert.addActionListener(e -> {
+            this.setEnabled(false);
+            new Window(this, CriterionTreeMap.getEmptyMap());
+        });
+        mainPanel.add(newExpert);
 
         JButton calculateButton = new JButton("Calculate Combined Ranking");
         calculateButton.setBounds(25, 450, 425, 50);

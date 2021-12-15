@@ -71,7 +71,6 @@ public class PCWindow extends JFrame {
                 mainPanel.add(label2);
             }
         }
-
         for(int i=0; i<labelNumber; i++) {
             for(int j=0; j<labelNumber; j++) {
                 JTextField textField = new JTextField(String.valueOf(Math.round(1000*windowObserver.getCAt(i,j,node.toString()))/1000.0));

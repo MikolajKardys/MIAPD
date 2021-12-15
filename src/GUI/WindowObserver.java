@@ -39,4 +39,10 @@ public interface WindowObserver {
     void removeCriteria(String criterionName);
 
     void renameCriteria(String oldName, String newName);
+
+    void addApple(String appleName);
+
+    void removeApple(String appleName);
+
+    void renameApple(String oldName, String newName);
 }
