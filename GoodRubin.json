@@ -1,1 +1,25 @@
-[[{"CriterionName":"root","ParentName":""},{"CriterionName":"smak","ParentName":"root"}],{"appleNames":"Fuji;Gala;Rubin;Antonówka;Ligol;Papierówka;"},[{"Array":"[[1.0, 0.5, 0.1, 0.2, 0.3, 0.4], [2.0, 1.0, 2.0, 2.5, 4.0, 5.0], [10.0, 0.5, 1.0, 5.0, 6.0, 5.0], [5.0, 0.4, 0.2, 1.0, 1.6, 2.0], [3.3333333333333335, 0.25, 0.16666666666666666, 0.625, 1.0, 1.25], [2.5, 0.2, 0.2, 0.5, 0.8, 1.0]]","CriterionName":"smak"},{"Array":"[[1.0]]","CriterionName":"root"}]]
+[
+  [
+    {
+      "CriterionName": "root",
+      "ParentName": ""
+    },
+    {
+      "CriterionName": "smak",
+      "ParentName": "root"
+    }
+  ],
+  {
+    "appleNames": "Fuji;Gala;Rubin;Antonówka;Ligol;Papierówka;"
+  },
+  [
+    {
+      "Array": "[[1.0, 0.5, 0.1, 0.2, 0.3, 0.4], [2.0, 1.0, 2.0, 2.5, 4.0, 5.0], [10.0, 0.5, 1.0, 5.0, 6.0, 5.0], [5.0, 0.4, 0.2, 1.0, 1.6, 2.0], [3.3333333333333335, 0.25, 0.16666666666666666, 0.625, 1.0, 1.25], [2.5, 0.2, 0.2, 0.5, 0.8, 1.0]]",
+      "CriterionName": "smak"
+    },
+    {
+      "Array": "[[1.0]]",
+      "CriterionName": "root"
+    }
+  ]
+]

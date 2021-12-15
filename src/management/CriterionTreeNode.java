@@ -6,7 +6,7 @@ public class CriterionTreeNode {
     private final CriterionTreeNode parent;
     private final List<CriterionTreeNode> children;
 
-    private final String criterionName;
+    private String criterionName;
 
     public CriterionTreeNode(CriterionTreeNode parent, String criterionName) {
         this.parent = parent;
@@ -16,6 +16,10 @@ public class CriterionTreeNode {
             this.parent.children.add(this);
 
         this.children = new ArrayList<>();
+    }
+
+    public void setCriterionName(String newName){
+        criterionName = newName;
     }
 
     @Override
@@ -50,5 +54,12 @@ public class CriterionTreeNode {
 
     public boolean isLeaf() {
         return children.size() == 0;
+    }
+
+    public void delete(){
+        if (parent != null){
+
+            System.out.println(toString() + " " + parent.children.remove(this));
+        }
     }
 }

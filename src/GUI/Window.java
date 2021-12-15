@@ -1,6 +1,7 @@
 package GUI;
 
 import arithmetics.PrioritizationMethod;
+import management.CriterionTreeMap;
 import management.CriterionTreeNode;
 
 import javax.swing.*;
@@ -13,6 +14,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Window extends JFrame {
     private class MyJPanel extends JPanel{
@@ -20,8 +23,9 @@ public class Window extends JFrame {
             super();
         }
 
-        private void paintRec(Graphics2D g2, CriterionTreeNode node){
+        private void paintRec(Graphics2D g2, CriterionTreeNode node, Map<CriterionTreeNode, int[]> orderMap){
             int [] index_1 = orderMap.get(node);
+
             for (int i = 0; i < node.getChildCount(); i++){
                 int [] index_2 = orderMap.get(node.getChildAt(i));
                 Line2D lin = new Line2D.Double(
@@ -29,25 +33,28 @@ public class Window extends JFrame {
                         150 + 225*index_2[1], 200 + 75*index_2[0]
                 );
                 g2.draw(lin);
-                paintRec(g2, node.getChildAt(i));
+                paintRec(g2, node.getChildAt(i), orderMap);
             }
         }
 
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            paintRec((Graphics2D) g, windowObserver.getRoot());
+
+            Map<CriterionTreeNode, int[]> orderMap = windowObserver.getNodeOrder();
+
+            paintRec((Graphics2D) g, windowObserver.getRoot(), orderMap);
         }
     }
 
-    private WindowObserver windowObserver;
+    private final WindowObserver windowObserver;
 
     private final JPanel mainPanel = new MyJPanel();
 
     private final List<JLabel> appleNameLabels = new ArrayList<>();
     private final List<JButton> criterionListButtons = new ArrayList<>();
 
-    private final Map<CriterionTreeNode, int[]> orderMap;
+    //private final Map<CriterionTreeNode, int[]> orderMap;
 
     public Window(JFrame owner, WindowObserver windowObserver) {
         this.addWindowListener(new WindowAdapter(){
@@ -58,10 +65,8 @@ public class Window extends JFrame {
 
         this.windowObserver = windowObserver;
 
-        orderMap = windowObserver.getNodeOrder();
-
         addAlternativeLabels();
-        addCriterionButtons(windowObserver.getRoot());
+        addCriterionButtons(windowObserver, windowObserver.getRoot());
 
         JButton getRankingButton = new JButton("Get ranking");
         getRankingButton.setBounds(600, 600, 250, 50);
@@ -127,7 +132,9 @@ public class Window extends JFrame {
         }
     }
 
-    private void addCriterionButtons(CriterionTreeNode node) {
+    private void addCriterionButtons(WindowObserver windowObserver, CriterionTreeNode node) {
+        Map<CriterionTreeNode, int[]> orderMap = windowObserver.getNodeOrder();
+
         String criterionName = node.toString();
 
         JButton criterionButton = new JButton(criterionName);
@@ -140,18 +147,89 @@ public class Window extends JFrame {
         criterionListButtons.add(criterionButton);
         mainPanel.add(criterionButton);
 
+        JPopupMenu menu = new JPopupMenu();
+        JMenuItem addNew = new JMenuItem("Add new sub criteria");
+        addNew.addActionListener(e -> {
+            String newName = JOptionPane.showInputDialog(null, "Create a name for the new criteria...",
+                    "New criteria", JOptionPane.QUESTION_MESSAGE);
+            if(newName != null && !newName.isEmpty()){
+                if (windowObserver.getCriterion(newName) != null)
+                    JOptionPane.showMessageDialog(this, "Criterion with this name " +
+                                    "already exists.",
+                            "Unable to create a new criterion", JOptionPane.ERROR_MESSAGE);
+                else{
+                    windowObserver.addCriteria(newName, criterionName);
+
+                    for (JButton button : criterionListButtons)
+                        mainPanel.remove(button);
+
+                    addCriterionButtons(windowObserver, windowObserver.getRoot());
+
+                    this.repaint();
+                    this.revalidate();
+                }
+            }
+        });
+        menu.add(addNew);
+
+        JMenuItem remove = new JMenuItem("Remove criteria");
+        remove.addActionListener(e -> {
+            try {
+                windowObserver.removeCriteria(criterionName);
+
+                for (JButton button : criterionListButtons)
+                    mainPanel.remove(button);
+
+                addCriterionButtons(windowObserver, windowObserver.getRoot());
+
+                this.repaint();
+                this.revalidate();
+
+            } catch (IllegalArgumentException ex){
+                JOptionPane.showMessageDialog(this, ex.getMessage(),
+                        "Can't delete this criteria", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        menu.add(remove);
+
+        JMenuItem rename = new JMenuItem("Rename this criteria to...");
+        rename.addActionListener(e -> {
+            String newName = JOptionPane.showInputDialog(null, "Rename this criteria to...",
+                    "Rename criteria", JOptionPane.QUESTION_MESSAGE);
+            if(newName != null && !newName.isEmpty()){
+                try {
+                    windowObserver.renameCriteria(criterionName, newName);
+
+                    for (JButton button : criterionListButtons)
+                        mainPanel.remove(button);
+
+                    addCriterionButtons(windowObserver, windowObserver.getRoot());
+
+                    this.repaint();
+                    this.revalidate();
+
+                } catch (IllegalArgumentException ex){
+                    JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(),
+                            "Can't rename this criteria", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+        menu.add(rename);
+
+        criterionButton.setComponentPopupMenu(menu);
+
         if(node.getChildCount() > 0)
             for(int i=0; i<node.getChildCount(); i++)
-                addCriterionButtons(node.getChildAt(i));
+                addCriterionButtons(windowObserver, node.getChildAt(i));
     }
 
-
+    /*
     public void setWindowObserver(WindowObserver windowObserver) {
         this.windowObserver = windowObserver;
     }
 
     public void removeWindowObserver() {
         this.windowObserver = null;
-    }
+    }*/
 
 }

@@ -47,8 +47,23 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
         double [][] oldMatrix = get(criterion);
         double [][] newMatrix = new double[oldMatrix.length + 1][oldMatrix.length + 1];
 
-        for (int i = 0; i < oldMatrix.length; i++)
+        for (int i = 0; i < oldMatrix.length; i++) {
             System.arraycopy(oldMatrix[i], 0, newMatrix[i], 0, oldMatrix.length);
+            newMatrix[i][oldMatrix.length] = 1;
+        }
+        for (int i = 0; i < newMatrix.length; i++)
+            newMatrix[oldMatrix.length][i] = 1;
+
+        put(criterion, newMatrix);
+    }
+
+    private void reduceMatrix(CriterionTreeNode criterion){
+        double [][] oldMatrix = get(criterion);
+        double [][] newMatrix = new double[oldMatrix.length - 1][oldMatrix.length - 1];
+
+        for (int i = 0; i < oldMatrix.length - 1; i++) {
+            System.arraycopy(oldMatrix[i], 0, newMatrix[i], 0, oldMatrix.length - 1);
+        }
 
         put(criterion, newMatrix);
     }
@@ -68,11 +83,58 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
     public void addCriteria(String criteriaName, String parent){
         CriterionTreeNode newCriteria = new CriterionTreeNode(getCriterion(parent), criteriaName);
 
-        put(newCriteria, new double[0][0]);
+        double [][] newLeaf = new double[applesNumber()][applesNumber()];
+        for (int i = 0; i < applesNumber(); i++)
+            for (int j = 0; j < applesNumber(); j++)
+                newLeaf[i][j] = 1;
+        put(newCriteria, newLeaf);
 
         if (newCriteria.getParent() != null){
-            expandMatrix(newCriteria.getParent());
+            if (getCriterion(parent).getChildCount() == 1){
+                double [][] fields = {{1.0}};
+                put(newCriteria.getParent(), fields);
+            }
+            else{
+                expandMatrix(newCriteria.getParent());
+            }
         }
+    }
+
+    public void removeCriteria(String criteriaName) throws IllegalArgumentException {
+        CriterionTreeNode criterion = getCriterion(criteriaName);
+
+        if (criterion.getParent() == null)
+            throw new IllegalArgumentException("Error: Can't delete the root");
+
+        while(criterion.getChildCount() > 0){
+            CriterionTreeNode currChild = criterion.getChildAt(0);
+            removeCriteria(currChild.toString());
+        }
+        criterion.delete();
+
+        reduceMatrix(criterion.getParent());
+        if (criterion.getParent().isLeaf()){
+            double [][] newLeaf = new double[applesNumber()][applesNumber()];
+            for (int i = 0; i < applesNumber(); i++)
+                for (int j = 0; j < applesNumber(); j++)
+                    newLeaf[i][j] = 1;
+            put(criterion.getParent(), newLeaf);
+        }
+
+        remove(criterion);
+    }
+
+    public void renameCriteria(String oldName, String newName) throws IllegalArgumentException{
+        CriterionTreeNode criterion = getCriterion(oldName);
+
+        Set<String> names = keySet().stream().map(CriterionTreeNode::toString).collect(Collectors.toSet());
+        if (names.contains(newName)){
+            throw new IllegalArgumentException("This name is already taken");
+        }
+
+        double [][] matrix = remove(criterion);
+        criterion.setCriterionName(newName);
+        put(criterion, matrix);
     }
 
     @Override
@@ -289,4 +351,6 @@ public class CriterionTreeMap extends HashMap<CriterionTreeNode, double [][]> im
         }
         return  indexMap;
     }
+
+
 }

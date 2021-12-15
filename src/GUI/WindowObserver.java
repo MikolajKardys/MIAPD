@@ -31,4 +31,12 @@ public interface WindowObserver {
     Map<String, Double> getIncIndex(CriterionTreeNode node);
 
     void writeToFile(String fileName) throws IllegalArgumentException;
+
+    CriterionTreeNode getCriterion(String criterionName);
+
+    void addCriteria(String criterionName, String parent);
+
+    void removeCriteria(String criterionName);
+
+    void renameCriteria(String oldName, String newName);
 }
